@@ -177,24 +177,25 @@ public class ParticleSystem {
      *
      * @param a The parent activity
      * @param maxParticles The maximum number of particles
-     * @param bitmap The bitmap to use as particle
+	 * @param bitmaps List of bitmaps to use as particle
      * @param timeToLive The time to live for the particles
      */
-    public ParticleSystem(Activity a, int maxParticles, Bitmap bitmap, long timeToLive) {
-        this(a, maxParticles, bitmap, timeToLive, android.R.id.content);
+    public ParticleSystem(Activity a, int maxParticles, List<Bitmap> bitmaps, long timeToLive) {
+        this(a, maxParticles, bitmaps, timeToLive, android.R.id.content);
     }
 	/**
 	 * Utility constructor that receives a Bitmap
 	 * 
 	 * @param a The parent activity
 	 * @param maxParticles The maximum number of particles
-	 * @param bitmap The bitmap to use as particle
+	 * @param bitmaps List of bitmaps to use as particle
 	 * @param timeToLive The time to live for the particles
      * @param parentViewId The view Id for the parent of the particle system
 	 */
-	public ParticleSystem(Activity a, int maxParticles, Bitmap bitmap, long timeToLive, int parentViewId) {
+	public ParticleSystem(Activity a, int maxParticles, List<Bitmap> bitmaps, long timeToLive, int parentViewId) {
 		this(a, maxParticles, timeToLive, parentViewId);
 		for (int i=0; i<mMaxParticles; i++) {
+			Bitmap bitmap = bitmaps.get(i % bitmaps.size());
 			mParticles.add (new Particle (bitmap));
 		}
 	}
