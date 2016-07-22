@@ -56,7 +56,7 @@ public class ParticleSystem {
 	private List<ParticleInitializer> mInitializers;
 	private ValueAnimator mAnimator;
 	private Timer mTimer;
-    private final ParticleTimerTask mTimerTask;
+    private ParticleTimerTask mTimerTask;
 
 	private float mDpToPxScale;
 	private int[] mParentLocation;
