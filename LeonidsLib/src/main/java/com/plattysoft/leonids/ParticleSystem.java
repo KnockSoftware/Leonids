@@ -56,7 +56,7 @@ public class ParticleSystem {
 	private List<ParticleInitializer> mInitializers;
 	private ValueAnimator mAnimator;
 	private Timer mTimer;
-    private final ParticleTimerTask mTimerTask = new ParticleTimerTask(this);
+    private final ParticleTimerTask mTimerTask;
 
 	private float mDpToPxScale;
 	private int[] mParentLocation;
@@ -461,6 +461,7 @@ public class ParticleSystem {
 		mDrawingView.setParticles (mActiveParticles);
 		updateParticlesBeforeStartTime(particlesPerSecond);
 		mTimer = new Timer();
+		mTimerTask = new ParticleTimerTask(this);
 		mTimer.schedule(mTimerTask, 0, TIMMERTASK_INTERVAL);
 	}
 
