@@ -668,6 +668,11 @@ public class ParticleSystem {
 	public void stopEmitting () {
 		// The time to be emiting is the current time (as if it was a time-limited emiter
 		mEmitingTime = mCurrentTime;
+		if (mTimer != null) {
+			mTimer.cancel();
+			mTimer.purge();
+			cleanupAnimation();
+		}
 	}
 	
 	/**
