@@ -454,11 +454,13 @@ public class ParticleSystem {
 	private void startEmiting(int particlesPerSecond) {
 		mActivatedParticles = 0;
 		mParticlesPerMilisecond = particlesPerSecond/1000f;
-		// Add a full size view to the parent view		
-		mDrawingView = new ParticleField(mParentView.getContext());
-		mParentView.addView(mDrawingView);
+		// Add a full size view to the parent view
+		if (mDrawingView == null) {
+			mDrawingView = new ParticleField(mParentView.getContext());
+			mParentView.addView(mDrawingView);
+			mDrawingView.setParticles (mActiveParticles);
+		}
 		mEmitingTime = -1; // Meaning infinite
-		mDrawingView.setParticles (mActiveParticles);
 		updateParticlesBeforeStartTime(particlesPerSecond);
 		mTimer = new Timer();
 		mTimerTask = new ParticleTimerTask(this);
@@ -657,6 +659,7 @@ public class ParticleSystem {
 
 	private void cleanupAnimation() {
 		mParentView.removeView(mDrawingView);
+		mParentView = null;
 		mDrawingView = null;
 		mParentView.postInvalidate();
 		mParticles.addAll(mActiveParticles);

@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.transition.Explode;
+import android.transition.Slide;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,6 +29,7 @@ import android.view.animation.OvershootInterpolator;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 class StringUtils {
@@ -57,15 +59,17 @@ class StringUtils {
 public class FireworksExampleActivity extends AppCompatActivity implements OnClickListener {
 	private ParticleSystem mParticleSystem;
 
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_particle_system_example);
 
-		Explode explode = new Explode();
-		explode.setDuration(1000);
-		explode.setInterpolator(new OvershootInterpolator());
-		getWindow().setExitTransition(explode);
+		Slide slideTransition = new Slide();
+		slideTransition.setSlideEdge(Gravity.LEFT);
+		slideTransition.setDuration(500);
+		getWindow().setReenterTransition(slideTransition);
+		getWindow().setExitTransition(slideTransition);
 
 		findViewById(R.id.button1).setOnClickListener(this);
 	}
@@ -111,7 +115,7 @@ public class FireworksExampleActivity extends AppCompatActivity implements OnCli
 	}
 
 	public void startEmoji() {
-		String emojisString = "\uD83D\uDC4D \uD83D\uDC4E \uD83D\uDE4C \uD83C\uDF02 \uD83C\uDF44 \uD83C\uDF24 \uD83C\uDF27 ⛄️ \uD83D\uDCA7 \uD83D\uDEB4 \uD83D\uDEB2 \uD83D\uDE80 \uD83C\uDF08 \uD83C\uDF20 \uD83C\uDF89 ❤️ \uD83D\uDC99 \uD83D\uDC9C \uD83D\uDC9A \uD83D\uDC9B \uD83D\uDCE2 \uD83C\uDF96 \uD83C\uDFC5 \uD83C\uDFC6 \uD83C\uDF97 \uD83D\uDCAB \uD83C\uDF41 \uD83C\uDFA9 \uD83D\uDC7B \uD83D\uDC52";
+		String emojisString = "\uD83D\uDE4C \uD83C\uDF02 \uD83C\uDF24 \uD83C\uDF27 ⛄️ \uD83D\uDCA7 \uD83D\uDEB4 \uD83D\uDEB2 \uD83C\uDF08 \uD83C\uDF20 ❤️ \uD83D\uDC99 \uD83D\uDC9C \uD83D\uDC9A \uD83D\uDC9B \uD83C\uDF96 \uD83C\uDFC5 \uD83C\uDFC6 \uD83C\uDF97 \uD83D\uDCAB \uD83C\uDF41 \uD83C\uDFA9 \uD83D\uDC52";
 		List<Bitmap> bitmaps = new ArrayList<Bitmap>();
 
 		String[] emojis = emojisString.split(" ");
@@ -121,11 +125,15 @@ public class FireworksExampleActivity extends AppCompatActivity implements OnCli
 			}
 		}
 
-		ParticleSystem ps = new ParticleSystem(this, 100, bitmaps, 30000, R.id.background_hook);
-		ps.setAcceleration(0.00000f, 90);
-				ps.setSpeedByComponentsRange(0f, 0f, 0.04f, 0.07f);
-				ps.setFadeOut(400, new AccelerateInterpolator());
-				ps.emitWithGravity(findViewById(R.id.emitter_space), Gravity.BOTTOM, 2);
+		Collections.shuffle(bitmaps);
+
+		if (mParticleSystem == null) {
+			mParticleSystem = new ParticleSystem(this, 100, bitmaps, 30000, R.id.background_hook);
+			mParticleSystem.setAcceleration(0.00000f, 90);
+			mParticleSystem.setSpeedByComponentsRange(0f, 0f, 0.04f, 0.07f);
+			mParticleSystem.setFadeOut(400, new AccelerateInterpolator());
+		}
+		mParticleSystem.emitWithGravity(findViewById(R.id.emitter_space), Gravity.BOTTOM, 2);
 	}
 
 	Bitmap emojiBitmap(String emoji) {

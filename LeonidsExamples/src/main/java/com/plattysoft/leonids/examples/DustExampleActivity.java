@@ -4,25 +4,30 @@ import com.plattysoft.leonids.modifiers.AlphaModifier;
 import com.plattysoft.leonids.ParticleSystem;
 import com.plattysoft.leonids.modifiers.ScaleModifier;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.transition.Explode;
+import android.transition.Slide;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.OvershootInterpolator;
 
 public class DustExampleActivity extends AppCompatActivity implements OnClickListener {
 
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_dust_example);
 
-		Explode explode = new Explode();
-		explode.setDuration(1000);
-		explode.setInterpolator(new OvershootInterpolator());
-		getWindow().setEnterTransition(explode);
+		Slide enterTransition = new Slide();
+		enterTransition.setDuration(500);
+		enterTransition.setSlideEdge(Gravity.RIGHT);
+		getWindow().setEnterTransition(enterTransition);
 
 		findViewById(R.id.button1).setOnClickListener(this);
 	}
