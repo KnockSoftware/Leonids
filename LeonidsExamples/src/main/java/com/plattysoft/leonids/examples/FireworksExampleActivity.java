@@ -3,6 +3,9 @@ package com.plattysoft.leonids.examples;
 import com.plattysoft.leonids.examples.R;
 import com.plattysoft.leonids.ParticleSystem;
 
+import android.annotation.TargetApi;
+import android.app.ActivityOptions;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -10,12 +13,17 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
+import android.transition.Explode;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -46,17 +54,63 @@ class StringUtils {
 	}
 }
 
-public class FireworksExampleActivity extends Activity implements OnClickListener {
+public class FireworksExampleActivity extends AppCompatActivity implements OnClickListener {
+	private ParticleSystem mParticleSystem;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_particle_system_example);
+
+		Explode explode = new Explode();
+		explode.setDuration(1000);
+		explode.setInterpolator(new OvershootInterpolator());
+		getWindow().setExitTransition(explode);
+
 		findViewById(R.id.button1).setOnClickListener(this);
 	}
 
 	@Override
-	public void onClick(View arg0) {
+	protected void onResume() {
+		super.onResume();
+
+		final View view = (View) findViewById(R.id.emitter_space);
+
+		if (view.getHeight() == 0) {
+			view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+				@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+				@Override
+				public void onGlobalLayout() {
+					startEmoji();
+					view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+				}
+			});
+		} else {
+			startEmoji();
+		}
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		if (mParticleSystem != null) {
+			mParticleSystem.stopEmitting();
+//            mParticleSystem = null;
+		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+
+		if (mParticleSystem != null) {
+			mParticleSystem.cancel();
+			mParticleSystem = null;
+		}
+	}
+
+	public void startEmoji() {
 		String emojisString = "\uD83D\uDC4D \uD83D\uDC4E \uD83D\uDE4C \uD83C\uDF02 \uD83C\uDF44 \uD83C\uDF24 \uD83C\uDF27 ⛄️ \uD83D\uDCA7 \uD83D\uDEB4 \uD83D\uDEB2 \uD83D\uDE80 \uD83C\uDF08 \uD83C\uDF20 \uD83C\uDF89 ❤️ \uD83D\uDC99 \uD83D\uDC9C \uD83D\uDC9A \uD83D\uDC9B \uD83D\uDCE2 \uD83C\uDF96 \uD83C\uDFC5 \uD83C\uDFC6 \uD83C\uDF97 \uD83D\uDCAB \uD83C\uDF41 \uD83C\uDFA9 \uD83D\uDC7B \uD83D\uDC52";
 		List<Bitmap> bitmaps = new ArrayList<Bitmap>();
 
@@ -95,4 +149,10 @@ public class FireworksExampleActivity extends Activity implements OnClickListene
 		return bitmap;
 	}
 
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	@Override
+	public void onClick(View v) {
+		Intent intent = new Intent(FireworksExampleActivity.this, DustExampleActivity.class);
+		FireworksExampleActivity.this.startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(FireworksExampleActivity.this).toBundle());
+	}
 }

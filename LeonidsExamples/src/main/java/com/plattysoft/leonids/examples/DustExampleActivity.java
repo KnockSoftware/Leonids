@@ -6,15 +6,24 @@ import com.plattysoft.leonids.modifiers.ScaleModifier;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.transition.Explode;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.OvershootInterpolator;
 
-public class DustExampleActivity extends Activity implements OnClickListener {
+public class DustExampleActivity extends AppCompatActivity implements OnClickListener {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_dust_example);
+
+		Explode explode = new Explode();
+		explode.setDuration(1000);
+		explode.setInterpolator(new OvershootInterpolator());
+		getWindow().setEnterTransition(explode);
+
 		findViewById(R.id.button1).setOnClickListener(this);
 	}
 

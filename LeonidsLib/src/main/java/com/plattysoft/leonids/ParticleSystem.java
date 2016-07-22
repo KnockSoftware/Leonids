@@ -672,7 +672,6 @@ public class ParticleSystem {
 		if (mTimer != null) {
 			mTimer.cancel();
 			mTimer.purge();
-			cleanupAnimation();
 			mTimerTask.cancel();
 		}
 	}
