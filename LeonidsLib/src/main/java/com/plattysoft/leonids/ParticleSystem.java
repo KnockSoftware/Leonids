@@ -35,8 +35,7 @@ import android.view.animation.LinearInterpolator;
 import java.lang.ref.WeakReference;
 
 public class ParticleSystem {
-
-	private static final long TIMMERTASK_INTERVAL = 50;
+	private static final long TIMMERTASK_INTERVAL = 15;
 	private ViewGroup mParentView;
 	private int mMaxParticles;
 	private Random mRandom;
