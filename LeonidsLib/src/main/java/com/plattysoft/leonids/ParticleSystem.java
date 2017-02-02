@@ -36,6 +36,8 @@ import java.util.TimerTask;
 
 public class ParticleSystem {
 
+	public enum EmitterShape { NONE, RECTANGLE, CIRCLE }
+
 	private static final long TIMMERTASK_INTERVAL = 50;
 	private ViewGroup mParentView;
 	private int mMaxParticles;
@@ -65,6 +67,8 @@ public class ParticleSystem {
 	private int mEmiterXMax;
 	private int mEmiterYMin;
 	private int mEmiterYMax;
+
+	private EmitterShape Shape = EmitterShape.NONE;
 
     private static class ParticleTimerTask extends TimerTask {
 
@@ -480,6 +484,32 @@ public class ParticleSystem {
 		configureEmiter(emiter, gravity);
 		startEmiting(particlesPerSecond);
 	}
+
+	private float mNumberOfTopSideParticles;
+	private float mNumberOfBottomSideParticles;
+	private float mNumberOfLeftSideParticles;
+	private float mNumberOfRightSideParticles;
+
+	private int mTopLeftY;
+	private int mTopLeftX;
+	private int mBottomRightY;
+	private int mBottomRightX;
+
+	private int mActivatedTopParticles;
+	private int mActivatedBottomParticles;
+	private int mActivatedLeftParticles;
+	private int mActivatedRightParticles;
+
+	public void emitFromRectangle(View emitter, int particlesPerSecond) {
+		Shape = EmitterShape.RECTANGLE;
+
+		float particlesPerPixel = particlesPerSecond * mTimeToLive / (float)1000 / (emitter.getWidth() * 2 + emitter.getHeight() * 2);
+		mNumberOfTopSideParticles = mNumberOfBottomSideParticles = particlesPerPixel * emitter.getWidth();
+		mNumberOfLeftSideParticles = mNumberOfRightSideParticles = particlesPerPixel * emitter.getHeight();
+
+		configureRectangularEmitter(emitter);
+		startEmiting(particlesPerSecond);
+	}
 	
 	private void startEmiting(int particlesPerSecond) {
 		mActivatedParticles = 0;
@@ -643,6 +673,18 @@ public class ParticleSystem {
 		}
 	}
 
+	private void configureRectangularEmitter(View emitter) {
+		// It works with an emision range
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		mTopLeftX = location[0];
+		mBottomRightX = location[0] + emitter.getWidth();
+
+		mTopLeftY = location[1];
+		mBottomRightY = location[1] - emitter.getHeight();
+	}
+
 	private boolean hasGravity(int gravity, int gravityToCheck) {
 		return (gravity & gravityToCheck) == gravityToCheck;
 	}
@@ -658,6 +700,64 @@ public class ParticleSystem {
 		int particleY = getFromRange (mEmiterYMin, mEmiterYMax);
 		p.configure(mTimeToLive, particleX, particleY);
 		p.activate(delay, mModifiers);
+		mActiveParticles.add(p);
+		mActivatedParticles++;
+	}
+
+	private void activateRectangularParticle(long delay) {
+		Particle p = mParticles.remove(0);
+		p.init();
+		// Initialization goes before configuration, scale is required before can be configured properly
+		for (int i=0; i<mInitializers.size(); i++) {
+			mInitializers.get(i).initParticle(p, mRandom);
+		}
+
+		if (mActivatedTopParticles <= mActivatedBottomParticles &&
+				mActivatedTopParticles <= mActivatedLeftParticles &&
+				mActivatedTopParticles <= mActivatedRightParticles) {
+			int particleX = getFromRange (mTopLeftX, mBottomRightX);
+			int particleY = getFromRange (mTopLeftY, mTopLeftY);
+			p.configure(mTimeToLive, particleX, particleY);
+			p.activate(delay, mModifiers);
+
+			mActivatedTopParticles++;
+		} else if (mActivatedBottomParticles <= mActivatedTopParticles &&
+				mActivatedBottomParticles <= mActivatedLeftParticles &&
+				mActivatedBottomParticles <= mActivatedRightParticles) {
+			int particleX = getFromRange (mTopLeftX, mBottomRightX);
+			int particleY = getFromRange (mBottomRightY, mBottomRightY);
+			p.configure(mTimeToLive, particleX, particleY);
+			p.activate(delay, mModifiers);
+
+			mActivatedBottomParticles++;
+		} else if (mActivatedLeftParticles <= mActivatedTopParticles &&
+				mActivatedLeftParticles <= mActivatedBottomParticles &&
+				mActivatedLeftParticles <= mActivatedRightParticles) {
+			int particleX = getFromRange (mTopLeftX, mTopLeftX);
+			int particleY = getFromRange (mTopLeftY, mBottomRightY);
+			p.configure(mTimeToLive, particleX, particleY);
+			p.activate(delay, mModifiers);
+
+			mActivatedLeftParticles++;
+		} else if (mActivatedRightParticles <= mActivatedTopParticles &&
+				mActivatedRightParticles <= mActivatedBottomParticles &&
+				mActivatedRightParticles <= mActivatedLeftParticles) {
+			int particleX = getFromRange (mBottomRightX, mBottomRightX);
+			int particleY = getFromRange (mTopLeftY, mBottomRightY);
+			p.configure(mTimeToLive, particleX, particleY);
+			p.activate(delay, mModifiers);
+
+			mActivatedRightParticles++;
+		} else {
+			int particleX = getFromRange (mTopLeftX, mBottomRightX);
+			int particleY = getFromRange (mTopLeftY, mTopLeftY);
+			p.configure(mTimeToLive, particleX, particleY);
+			p.activate(delay, mModifiers);
+			//TOP PARTICLES
+			mActivatedTopParticles++;
+		}
+
+
 		mActiveParticles.add(p);
 		mActivatedParticles++;
 	}
@@ -679,7 +779,11 @@ public class ParticleSystem {
 				!mParticles.isEmpty() && // We have particles in the pool 
 				mActivatedParticles < mParticlesPerMilisecond*miliseconds) { // and we are under the number of particles that should be launched
 			// Activate a new particle
-			activateParticle(miliseconds);			
+			if (Shape == EmitterShape.RECTANGLE) {
+				activateRectangularParticle(miliseconds);
+			} else {
+				activateParticle(miliseconds);
+			}
 		}
 		synchronized(mActiveParticles) {
 			for (int i = 0; i < mActiveParticles.size(); i++) {
@@ -737,6 +841,16 @@ public class ParticleSystem {
 		long frameTimeInMs = mCurrentTime / framesCount;
 		for (int i = 1; i <= framesCount; i++) {
 			onUpdate(frameTimeInMs * i + 1);
+		}
+	}
+
+	private void getSmallest(int... ints) {
+		int minValue = ints[0];
+
+		for (int val : ints) {
+			if (val < minValue) {
+				minValue = val;
+			}
 		}
 	}
 }

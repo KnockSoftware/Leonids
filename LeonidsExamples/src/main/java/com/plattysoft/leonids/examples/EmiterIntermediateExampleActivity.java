@@ -26,7 +26,7 @@ public class EmiterIntermediateExampleActivity extends Activity implements OnCli
 //		ps.setAcceleration(0.00015f, -90);
 		ps.setFadeIn(400, new AccelerateInterpolator());
 		ps.setFadeOut(300, new AccelerateInterpolator());
-		ps.emitWithGravity(arg0, Gravity.TOP, 8);
+		ps.emitWithGravity(arg0, Gravity.TOP | Gravity.CENTER_HORIZONTAL /*| Gravity.BOTTOM | Gravity.RIGHT*/, 8);
 	}
 
 }
