@@ -36,7 +36,7 @@ import java.util.TimerTask;
 
 public class ParticleSystem {
 
-	public enum EmitterShape { NONE, RECTANGLE, CIRCLE }
+	private enum EmitterShape { NONE, RECTANGLE, CIRCLE }
 
 	private static final long TIMMERTASK_INTERVAL = 50;
 	private ViewGroup mParentView;
@@ -69,6 +69,16 @@ public class ParticleSystem {
 	private int mEmiterYMax;
 
 	private EmitterShape Shape = EmitterShape.NONE;
+
+	private int mRectangleTopLeftY;
+	private int mRectangleTopLeftX;
+	private int mRectangleBottomRightY;
+	private int mRectangleBottomRightX;
+
+	private int mRectangleActivatedTopParticles;
+	private int mRectangleActivatedBottomParticles;
+	private int mRectangleActivatedLeftParticles;
+	private int mRectangleActivatedRightParticles;
 
     private static class ParticleTimerTask extends TimerTask {
 
@@ -484,16 +494,6 @@ public class ParticleSystem {
 		configureEmiter(emiter, gravity);
 		startEmiting(particlesPerSecond);
 	}
-
-	private int mRectangleTopLeftY;
-	private int mRectangleTopLeftX;
-	private int mRectangleBottomRightY;
-	private int mRectangleBottomRightX;
-
-	private int mRectangleActivatedTopParticles;
-	private int mRectangleActivatedBottomParticles;
-	private int mRectangleActivatedLeftParticles;
-	private int mRectangleActivatedRightParticles;
 
 	/**
 	 * Starts emitting particles from a specific view with a rectangular shape.
