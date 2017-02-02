@@ -29,6 +29,7 @@ import com.plattysoft.leonids.modifiers.ParticleModifier;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -37,6 +38,8 @@ import java.util.TimerTask;
 public class ParticleSystem {
 
 	private enum EmitterShape { NONE, RECTANGLE, CIRCLE }
+
+	private enum RectangleSide { TOP, BOTTOM, RIGHT, LEFT }
 
 	private static final long TIMMERTASK_INTERVAL = 50;
 	private ViewGroup mParentView;
@@ -79,6 +82,8 @@ public class ParticleSystem {
 	private int mRectangleActivatedBottomParticles;
 	private int mRectangleActivatedLeftParticles;
 	private int mRectangleActivatedRightParticles;
+
+	private HashMap<RectangleSide, Integer> ParticlesPerSide;
 
     private static class ParticleTimerTask extends TimerTask {
 
@@ -571,6 +576,30 @@ public class ParticleSystem {
 	}
 
 	/**
+	 * Launches particles in one Shot using a special Interpolator
+	 *
+	 * @param emiter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 * @param interpolator the interpolator for the time
+	 */
+	public void oneShot(View emiter, int numParticles, Interpolator interpolator) {
+		configureEmiter(emiter, Gravity.CENTER);
+		mActivatedParticles = 0;
+		mEmitingTime = mTimeToLive;
+		// We create particles based in the parameters
+		for (int i=0; i<numParticles && i<mMaxParticles; i++) {
+			activateParticle(0);
+		}
+		// Add a full size view to the parent view
+		mDrawingView = new ParticleField(mParentView.getContext());
+		mParentView.addView(mDrawingView);
+		mDrawingView.setParticles(mActiveParticles);
+		// We start a property animator that will call us to do the update
+		// Animate from 0 to timeToLiveMax
+		startAnimator(interpolator, mTimeToLive);
+	}
+
+	/**
 	 * Launches particles in one Shot
 	 *
 	 * @param emitter View from which center the particles will be emited
@@ -588,6 +617,8 @@ public class ParticleSystem {
 	 * @param interpolator the interpolator for the time
 	 */
 	public void oneRectangularShot(View emitter, int numParticles, Interpolator interpolator) {
+		clearRectangleParticlesPerSide();
+
 		configureRectangularEmitter(emitter);
 		mActivatedParticles = 0;
 		mEmitingTime = mTimeToLive;
@@ -596,30 +627,6 @@ public class ParticleSystem {
 			activateRectangularParticle(0);
 		}
 		// Add a full size view to the parent view
-		mDrawingView = new ParticleField(mParentView.getContext());
-		mParentView.addView(mDrawingView);
-		mDrawingView.setParticles(mActiveParticles);
-		// We start a property animator that will call us to do the update
-		// Animate from 0 to timeToLiveMax
-		startAnimator(interpolator, mTimeToLive);
-	}
-
-	/**
-	 * Launches particles in one Shot using a special Interpolator
-	 * 
-	 * @param emiter View from which center the particles will be emited
-	 * @param numParticles number of particles launched on the one shot
-	 * @param interpolator the interpolator for the time
-	 */
-	public void oneShot(View emiter, int numParticles, Interpolator interpolator) {
-		configureEmiter(emiter, Gravity.CENTER);
-		mActivatedParticles = 0;
-		mEmitingTime = mTimeToLive;
-		// We create particles based in the parameters
-		for (int i=0; i<numParticles && i<mMaxParticles; i++) {
-			activateParticle(0);
-		}
-		// Add a full size view to the parent view		
 		mDrawingView = new ParticleField(mParentView.getContext());
 		mParentView.addView(mDrawingView);
 		mDrawingView.setParticles(mActiveParticles);
@@ -742,6 +749,21 @@ public class ParticleSystem {
 			mInitializers.get(i).initParticle(p, mRandom);
 		}
 
+
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
+		//TODO get rid of this crap
 		if (mRectangleActivatedTopParticles <= mRectangleActivatedBottomParticles &&
 				mRectangleActivatedTopParticles <= mRectangleActivatedLeftParticles &&
 				mRectangleActivatedTopParticles <= mRectangleActivatedRightParticles) {
@@ -860,6 +882,8 @@ public class ParticleSystem {
 	}
 
 	private void updateParticlesBeforeStartTime(int particlesPerSecond) {
+		clearRectangleParticlesPerSide();
+
 		if (particlesPerSecond == 0) {
 			return;
 		}
@@ -871,6 +895,18 @@ public class ParticleSystem {
 		long frameTimeInMs = mCurrentTime / framesCount;
 		for (int i = 1; i <= framesCount; i++) {
 			onUpdate(frameTimeInMs * i + 1);
+		}
+	}
+
+	private void clearRectangleParticlesPerSide() {
+		if (ParticlesPerSide == null) {
+			ParticlesPerSide = new HashMap<RectangleSide, Integer> ();
+		}
+
+		ParticlesPerSide.clear();
+
+		for (RectangleSide side : RectangleSide.values()) {
+			ParticlesPerSide.put(side, 0);
 		}
 	}
 }
