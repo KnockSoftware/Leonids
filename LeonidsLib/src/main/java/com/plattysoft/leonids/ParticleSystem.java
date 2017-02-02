@@ -485,28 +485,24 @@ public class ParticleSystem {
 		startEmiting(particlesPerSecond);
 	}
 
-	private float mNumberOfTopSideParticles;
-	private float mNumberOfBottomSideParticles;
-	private float mNumberOfLeftSideParticles;
-	private float mNumberOfRightSideParticles;
+	private int mRectangleTopLeftY;
+	private int mRectangleTopLeftX;
+	private int mRectangleBottomRightY;
+	private int mRectangleBottomRightX;
 
-	private int mTopLeftY;
-	private int mTopLeftX;
-	private int mBottomRightY;
-	private int mBottomRightX;
+	private int mRectangleActivatedTopParticles;
+	private int mRectangleActivatedBottomParticles;
+	private int mRectangleActivatedLeftParticles;
+	private int mRectangleActivatedRightParticles;
 
-	private int mActivatedTopParticles;
-	private int mActivatedBottomParticles;
-	private int mActivatedLeftParticles;
-	private int mActivatedRightParticles;
-
+	/**
+	 * Starts emitting particles from a specific view with a rectangular shape.
+	 *
+	 * @param emitter  View from which center the particles will be emited
+	 * @param particlesPerSecond Number of particles per second that will be emited (evenly distributed)
+	 */
 	public void emitFromRectangle(View emitter, int particlesPerSecond) {
 		Shape = EmitterShape.RECTANGLE;
-
-		float particlesPerPixel = particlesPerSecond * mTimeToLive / (float)1000 / (emitter.getWidth() * 2 + emitter.getHeight() * 2);
-		mNumberOfTopSideParticles = mNumberOfBottomSideParticles = particlesPerPixel * emitter.getWidth();
-		mNumberOfLeftSideParticles = mNumberOfRightSideParticles = particlesPerPixel * emitter.getHeight();
-
 		configureRectangularEmitter(emitter);
 		startEmiting(particlesPerSecond);
 	}
@@ -572,6 +568,40 @@ public class ParticleSystem {
 	 */
 	public void oneShot(View emiter, int numParticles) {
 		oneShot(emiter, numParticles, new LinearInterpolator());
+	}
+
+	/**
+	 * Launches particles in one Shot
+	 *
+	 * @param emitter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 */
+	public void oneRectangularShot(View emitter, int numParticles) {
+		oneRectangularShot(emitter, numParticles, new LinearInterpolator());
+	}
+
+	/**
+	 * Launches particles in one Shot
+	 *
+	 * @param emitter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 * @param interpolator the interpolator for the time
+	 */
+	public void oneRectangularShot(View emitter, int numParticles, Interpolator interpolator) {
+		configureRectangularEmitter(emitter);
+		mActivatedParticles = 0;
+		mEmitingTime = mTimeToLive;
+		// We create particles based in the parameters
+		for (int i=0; i<numParticles && i<mMaxParticles; i++) {
+			activateRectangularParticle(0);
+		}
+		// Add a full size view to the parent view
+		mDrawingView = new ParticleField(mParentView.getContext());
+		mParentView.addView(mDrawingView);
+		mDrawingView.setParticles(mActiveParticles);
+		// We start a property animator that will call us to do the update
+		// Animate from 0 to timeToLiveMax
+		startAnimator(interpolator, mTimeToLive);
 	}
 
 	/**
@@ -678,11 +708,11 @@ public class ParticleSystem {
 		int[] location = new int[2];
 		emitter.getLocationInWindow(location);
 
-		mTopLeftX = location[0];
-		mBottomRightX = location[0] + emitter.getWidth();
+		mRectangleTopLeftX = location[0];
+		mRectangleBottomRightX = location[0] + emitter.getWidth();
 
-		mTopLeftY = location[1];
-		mBottomRightY = location[1] - emitter.getHeight();
+		mRectangleTopLeftY = location[1];
+		mRectangleBottomRightY = location[1] + emitter.getHeight();
 	}
 
 	private boolean hasGravity(int gravity, int gravityToCheck) {
@@ -712,49 +742,49 @@ public class ParticleSystem {
 			mInitializers.get(i).initParticle(p, mRandom);
 		}
 
-		if (mActivatedTopParticles <= mActivatedBottomParticles &&
-				mActivatedTopParticles <= mActivatedLeftParticles &&
-				mActivatedTopParticles <= mActivatedRightParticles) {
-			int particleX = getFromRange (mTopLeftX, mBottomRightX);
-			int particleY = getFromRange (mTopLeftY, mTopLeftY);
+		if (mRectangleActivatedTopParticles <= mRectangleActivatedBottomParticles &&
+				mRectangleActivatedTopParticles <= mRectangleActivatedLeftParticles &&
+				mRectangleActivatedTopParticles <= mRectangleActivatedRightParticles) {
+			int particleX = getFromRange (mRectangleTopLeftX, mRectangleBottomRightX);
+			int particleY = getFromRange (mRectangleTopLeftY, mRectangleTopLeftY);
 			p.configure(mTimeToLive, particleX, particleY);
 			p.activate(delay, mModifiers);
 
-			mActivatedTopParticles++;
-		} else if (mActivatedBottomParticles <= mActivatedTopParticles &&
-				mActivatedBottomParticles <= mActivatedLeftParticles &&
-				mActivatedBottomParticles <= mActivatedRightParticles) {
-			int particleX = getFromRange (mTopLeftX, mBottomRightX);
-			int particleY = getFromRange (mBottomRightY, mBottomRightY);
+			mRectangleActivatedTopParticles++;
+		} else if (mRectangleActivatedBottomParticles <= mRectangleActivatedTopParticles &&
+				mRectangleActivatedBottomParticles <= mRectangleActivatedLeftParticles &&
+				mRectangleActivatedBottomParticles <= mRectangleActivatedRightParticles) {
+			int particleX = getFromRange (mRectangleTopLeftX, mRectangleBottomRightX);
+			int particleY = getFromRange (mRectangleBottomRightY, mRectangleBottomRightY);
 			p.configure(mTimeToLive, particleX, particleY);
 			p.activate(delay, mModifiers);
 
-			mActivatedBottomParticles++;
-		} else if (mActivatedLeftParticles <= mActivatedTopParticles &&
-				mActivatedLeftParticles <= mActivatedBottomParticles &&
-				mActivatedLeftParticles <= mActivatedRightParticles) {
-			int particleX = getFromRange (mTopLeftX, mTopLeftX);
-			int particleY = getFromRange (mTopLeftY, mBottomRightY);
+			mRectangleActivatedBottomParticles++;
+		} else if (mRectangleActivatedLeftParticles <= mRectangleActivatedTopParticles &&
+				mRectangleActivatedLeftParticles <= mRectangleActivatedBottomParticles &&
+				mRectangleActivatedLeftParticles <= mRectangleActivatedRightParticles) {
+			int particleX = getFromRange (mRectangleTopLeftX, mRectangleTopLeftX);
+			int particleY = getFromRange (mRectangleTopLeftY, mRectangleBottomRightY);
 			p.configure(mTimeToLive, particleX, particleY);
 			p.activate(delay, mModifiers);
 
-			mActivatedLeftParticles++;
-		} else if (mActivatedRightParticles <= mActivatedTopParticles &&
-				mActivatedRightParticles <= mActivatedBottomParticles &&
-				mActivatedRightParticles <= mActivatedLeftParticles) {
-			int particleX = getFromRange (mBottomRightX, mBottomRightX);
-			int particleY = getFromRange (mTopLeftY, mBottomRightY);
+			mRectangleActivatedLeftParticles++;
+		} else if (mRectangleActivatedRightParticles <= mRectangleActivatedTopParticles &&
+				mRectangleActivatedRightParticles <= mRectangleActivatedBottomParticles &&
+				mRectangleActivatedRightParticles <= mRectangleActivatedLeftParticles) {
+			int particleX = getFromRange (mRectangleBottomRightX, mRectangleBottomRightX);
+			int particleY = getFromRange (mRectangleTopLeftY, mRectangleBottomRightY);
 			p.configure(mTimeToLive, particleX, particleY);
 			p.activate(delay, mModifiers);
 
-			mActivatedRightParticles++;
+			mRectangleActivatedRightParticles++;
 		} else {
-			int particleX = getFromRange (mTopLeftX, mBottomRightX);
-			int particleY = getFromRange (mTopLeftY, mTopLeftY);
+			int particleX = getFromRange (mRectangleTopLeftX, mRectangleBottomRightX);
+			int particleY = getFromRange (mRectangleTopLeftY, mRectangleTopLeftY);
 			p.configure(mTimeToLive, particleX, particleY);
 			p.activate(delay, mModifiers);
 			//TOP PARTICLES
-			mActivatedTopParticles++;
+			mRectangleActivatedTopParticles++;
 		}
 
 
@@ -841,16 +871,6 @@ public class ParticleSystem {
 		long frameTimeInMs = mCurrentTime / framesCount;
 		for (int i = 1; i <= framesCount; i++) {
 			onUpdate(frameTimeInMs * i + 1);
-		}
-	}
-
-	private void getSmallest(int... ints) {
-		int minValue = ints[0];
-
-		for (int val : ints) {
-			if (val < minValue) {
-				minValue = val;
-			}
 		}
 	}
 }
