@@ -32,7 +32,8 @@ public class AlphaModifier implements ParticleModifier {
 	@Override
 	public void apply(Particle particle, long miliseconds) {
 		if (miliseconds < mStartTime) {
-			particle.mAlpha = mInitialValue;
+			return;
+//			particle.mAlpha = mInitialValue;
 		}
 		else if (miliseconds > mEndTime) {
 			particle.mAlpha = mFinalValue;
