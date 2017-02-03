@@ -20,11 +20,11 @@ public class EmiterSimpleExampleActivity extends Activity implements OnClickList
 	@Override
 	public void onClick(View arg0) {
 		new ParticleSystem(this, 1000, R.drawable.star_pink, 700)
-//		.setSpeedRange(-0.1f, -0.25f)
-		.setSpeedModuleAndAngleRange(0.04f, 0.05f, 0, 360)
-				.setFadeIn(200, new LinearInterpolator())
+				.setSpeedRange(0.04f, 0.05f)
+				.setAccelerationModuleAndAndAngleRange(0.00003f, 0.00007f, -180, 0)
+				.setFadeIn(300, new LinearInterpolator())
 				.setFadeOut(300, new LinearInterpolator())
-				.oneRectangularShot(arg0, 1000, new LinearInterpolator());
+				.oneCircularShot(arg0, 1000);
 	}
 
 }

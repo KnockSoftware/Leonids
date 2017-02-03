@@ -87,6 +87,13 @@ public class ParticleSystem {
 	private Rect mRectangleBounds;
 	private List<SideToParticles> mSideToParticles;
 
+	private int mCircleRadius;
+	private int mCircleCenterX;
+	private int mCircleCenterY;
+	private float mAngleBetweenParticles;
+	private float mLastParticleAngle;
+	private static final float DEGREES_TO_RAD = 0.0174533f;
+
     private static class ParticleTimerTask extends TimerTask {
 
         private final WeakReference<ParticleSystem> mPs;
@@ -637,6 +644,40 @@ public class ParticleSystem {
 		startAnimator(interpolator, mTimeToLive);
 	}
 
+	/**
+	 * Launches particles in one Shot
+	 *
+	 * @param emitter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 */
+	public void oneCircularShot(View emitter, int numParticles) {
+		oneCircularShot(emitter, numParticles, new LinearInterpolator());
+	}
+
+	/**
+	 * Launches particles in one Shot
+	 *
+	 * @param emitter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 * @param interpolator the interpolator for the time
+	 */
+	public void oneCircularShot(View emitter, int numParticles, Interpolator interpolator) {
+		configureCircularEmitter(emitter, numParticles);
+		mActivatedParticles = 0;
+		mEmitingTime = mTimeToLive;
+		// We create particles based in the parameters
+		for (int i=0; i<numParticles && i<mMaxParticles; i++) {
+			activateCircularParticle (0);
+		}
+		// Add a full size view to the parent view
+		mDrawingView = new ParticleField(mParentView.getContext());
+		mParentView.addView(mDrawingView);
+		mDrawingView.setParticles(mActiveParticles);
+		// We start a property animator that will call us to do the update
+		// Animate from 0 to timeToLiveMax
+		startAnimator(interpolator, mTimeToLive);
+	}
+
 	private void startAnimator(Interpolator interpolator, long animnationTime) {
 		mAnimator = ValueAnimator.ofInt(0, (int) animnationTime);
 		mAnimator.setDuration(animnationTime);
@@ -720,6 +761,19 @@ public class ParticleSystem {
 		mRectangleBounds = new Rect(location[0], location[1], location[0] + emitter.getWidth(), location[1] + emitter.getHeight());
 	}
 
+	private void configureCircularEmitter(View emitter, int numParticles) {
+		// It works with an emision range
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		mCircleRadius = Math.min(emitter.getHeight(), emitter.getWidth()) / 2;
+		mCircleCenterX = location[0] + emitter.getWidth() / 2;
+		mCircleCenterY = location[1] + emitter.getHeight() / 2;
+
+		mAngleBetweenParticles = 360 / (float)numParticles;
+		mLastParticleAngle = 0;
+	}
+
 	private boolean hasGravity(int gravity, int gravityToCheck) {
 		return (gravity & gravityToCheck) == gravityToCheck;
 	}
@@ -774,6 +828,24 @@ public class ParticleSystem {
 		mSideToParticles
 				.get(indexOfSideWithSmallestNumberOfParticles)
 				.activatedParticles++;
+		mActiveParticles.add(p);
+		mActivatedParticles++;
+	}
+
+	private void activateCircularParticle(long delay) {
+		Particle p = mParticles.remove(0);
+		p.init();
+		// Initialization goes before configuration, scale is required before can be configured properly
+		for (int i=0; i<mInitializers.size(); i++) {
+			mInitializers.get(i).initParticle(p, mRandom);
+		}
+
+		int particleX = (int)(mCircleCenterX + mCircleRadius * Math.cos((double)(mLastParticleAngle * DEGREES_TO_RAD)));
+		int particleY = (int)(mCircleCenterY + mCircleRadius * Math.sin((double)(mLastParticleAngle * DEGREES_TO_RAD)));
+		mLastParticleAngle += mAngleBetweenParticles;
+
+		p.configure(mTimeToLive, particleX, particleY);
+		p.activate(delay, mModifiers);
 		mActiveParticles.add(p);
 		mActivatedParticles++;
 	}
