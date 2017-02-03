@@ -435,7 +435,6 @@ public class ParticleSystem {
 		return this;
 	}
 
-
 	/**
 	 * Configures a fade out for the particles when they disappear
 	 *
@@ -449,11 +448,39 @@ public class ParticleSystem {
 
 	/**
 	 * Configures a fade out for the particles when they disappear
+	 *
+	 * @param interpolator the interpolator for the fade out (default is linear)
+	 */
+	public ParticleSystem setDelayedFadeIn(long delay, long fadeDuration, Interpolator interpolator) {
+		mModifiers.add(new AlphaModifier(0, 255, delay, delay + fadeDuration, interpolator));
+		return this;
+	}
+
+	/**
+	 * Configures a fade out for the particles when they disappear
 	 * 
 	 * @param duration fade out duration in milliseconds
 	 */
 	public ParticleSystem setFadeOut(long duration) {
 		return setFadeOut(duration, new LinearInterpolator());
+	}
+
+	/**
+	 * Configures a fade in for the particles when they appear
+	 *
+	 * @param duration fade out duration in milliseconds
+	 */
+	public ParticleSystem setFadeIn(long duration) {
+		return setFadeIn(duration, new LinearInterpolator());
+	}
+
+	/**
+	 * Configures a fade out for the particles when they disappear
+	 *
+	 */
+	public ParticleSystem setDelayedFadeIn(long delay, long fadeDuration) {
+		setDelayedFadeIn(delay, fadeDuration, new LinearInterpolator());
+		return this;
 	}
 
 	/**
@@ -520,7 +547,7 @@ public class ParticleSystem {
 		configureRectangularEmitter(emitter);
 		startEmiting(particlesPerSecond);
 	}
-	
+
 	private void startEmiting(int particlesPerSecond) {
 		mActivatedParticles = 0;
 		mParticlesPerMilisecond = particlesPerSecond/1000f;

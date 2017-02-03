@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.animation.LinearInterpolator;
 
 import com.plattysoft.leonids.ParticleSystem;
 
@@ -19,12 +18,11 @@ public class EmiterSimpleExampleActivity extends Activity implements OnClickList
 
 	@Override
 	public void onClick(View arg0) {
-		new ParticleSystem(this, 1000, R.drawable.star_pink, 700)
-				.setSpeedRange(0.04f, 0.05f)
-				.setAccelerationModuleAndAndAngleRange(0.00003f, 0.00007f, -180, 0)
-				.setFadeIn(300, new LinearInterpolator())
-				.setFadeOut(300, new LinearInterpolator())
-				.oneCircularShot(arg0, 1000);
+		new ParticleSystem(this, 1000, R.drawable.star_pink, 7000)
+				.setDelayedFadeIn(5000, 200)
+				.setFadeOut(300)
+				.setSpeedRange(0.02f, 0.025f)
+				.emit(arg0, 100);
 	}
 
 }
