@@ -7,6 +7,7 @@ import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -29,7 +30,6 @@ import com.plattysoft.leonids.modifiers.ParticleModifier;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -40,6 +40,17 @@ public class ParticleSystem {
 	private enum EmitterShape { NONE, RECTANGLE, CIRCLE }
 
 	private enum RectangleSide { TOP, BOTTOM, RIGHT, LEFT }
+
+	private static class SideToParticles {
+
+		RectangleSide side;
+		int activatedParticles;
+
+		public SideToParticles(RectangleSide side, int activatedParticles) {
+			this.side = side;
+			this.activatedParticles = activatedParticles;
+		}
+	}
 
 	private static final long TIMMERTASK_INTERVAL = 50;
 	private ViewGroup mParentView;
@@ -73,17 +84,8 @@ public class ParticleSystem {
 
 	private EmitterShape Shape = EmitterShape.NONE;
 
-	private int mRectangleTopLeftY;
-	private int mRectangleTopLeftX;
-	private int mRectangleBottomRightY;
-	private int mRectangleBottomRightX;
-
-	private int mRectangleActivatedTopParticles;
-	private int mRectangleActivatedBottomParticles;
-	private int mRectangleActivatedLeftParticles;
-	private int mRectangleActivatedRightParticles;
-
-	private HashMap<RectangleSide, Integer> ParticlesPerSide;
+	private Rect mRectangleBounds;
+	private List<SideToParticles> mSideToParticles;
 
     private static class ParticleTimerTask extends TimerTask {
 
@@ -715,11 +717,7 @@ public class ParticleSystem {
 		int[] location = new int[2];
 		emitter.getLocationInWindow(location);
 
-		mRectangleTopLeftX = location[0];
-		mRectangleBottomRightX = location[0] + emitter.getWidth();
-
-		mRectangleTopLeftY = location[1];
-		mRectangleBottomRightY = location[1] + emitter.getHeight();
+		mRectangleBounds = new Rect(location[0], location[1], location[0] + emitter.getWidth(), location[1] + emitter.getHeight());
 	}
 
 	private boolean hasGravity(int gravity, int gravityToCheck) {
@@ -749,67 +747,33 @@ public class ParticleSystem {
 			mInitializers.get(i).initParticle(p, mRandom);
 		}
 
+		int indexOfSideWithSmallestNumberOfParticles = mSideToParticles.indexOf(getSideWithSmallestParticlesAmount());
+		RectangleSide sideWithSmallestNumberOfParticles = mSideToParticles
+				.get(indexOfSideWithSmallestNumberOfParticles)
+				.side;
 
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		//TODO get rid of this crap
-		if (mRectangleActivatedTopParticles <= mRectangleActivatedBottomParticles &&
-				mRectangleActivatedTopParticles <= mRectangleActivatedLeftParticles &&
-				mRectangleActivatedTopParticles <= mRectangleActivatedRightParticles) {
-			int particleX = getFromRange (mRectangleTopLeftX, mRectangleBottomRightX);
-			int particleY = getFromRange (mRectangleTopLeftY, mRectangleTopLeftY);
-			p.configure(mTimeToLive, particleX, particleY);
-			p.activate(delay, mModifiers);
+		int particleX = 0;
+		int particleY = 0;
 
-			mRectangleActivatedTopParticles++;
-		} else if (mRectangleActivatedBottomParticles <= mRectangleActivatedTopParticles &&
-				mRectangleActivatedBottomParticles <= mRectangleActivatedLeftParticles &&
-				mRectangleActivatedBottomParticles <= mRectangleActivatedRightParticles) {
-			int particleX = getFromRange (mRectangleTopLeftX, mRectangleBottomRightX);
-			int particleY = getFromRange (mRectangleBottomRightY, mRectangleBottomRightY);
-			p.configure(mTimeToLive, particleX, particleY);
-			p.activate(delay, mModifiers);
-
-			mRectangleActivatedBottomParticles++;
-		} else if (mRectangleActivatedLeftParticles <= mRectangleActivatedTopParticles &&
-				mRectangleActivatedLeftParticles <= mRectangleActivatedBottomParticles &&
-				mRectangleActivatedLeftParticles <= mRectangleActivatedRightParticles) {
-			int particleX = getFromRange (mRectangleTopLeftX, mRectangleTopLeftX);
-			int particleY = getFromRange (mRectangleTopLeftY, mRectangleBottomRightY);
-			p.configure(mTimeToLive, particleX, particleY);
-			p.activate(delay, mModifiers);
-
-			mRectangleActivatedLeftParticles++;
-		} else if (mRectangleActivatedRightParticles <= mRectangleActivatedTopParticles &&
-				mRectangleActivatedRightParticles <= mRectangleActivatedBottomParticles &&
-				mRectangleActivatedRightParticles <= mRectangleActivatedLeftParticles) {
-			int particleX = getFromRange (mRectangleBottomRightX, mRectangleBottomRightX);
-			int particleY = getFromRange (mRectangleTopLeftY, mRectangleBottomRightY);
-			p.configure(mTimeToLive, particleX, particleY);
-			p.activate(delay, mModifiers);
-
-			mRectangleActivatedRightParticles++;
-		} else {
-			int particleX = getFromRange (mRectangleTopLeftX, mRectangleBottomRightX);
-			int particleY = getFromRange (mRectangleTopLeftY, mRectangleTopLeftY);
-			p.configure(mTimeToLive, particleX, particleY);
-			p.activate(delay, mModifiers);
-			//TOP PARTICLES
-			mRectangleActivatedTopParticles++;
+		if (sideWithSmallestNumberOfParticles == RectangleSide.TOP) {
+			particleX = getFromRange (mRectangleBounds.left, mRectangleBounds.right);
+			particleY = getFromRange (mRectangleBounds.top, mRectangleBounds.top);
+		} else if (sideWithSmallestNumberOfParticles == RectangleSide.BOTTOM) {
+			particleX = getFromRange (mRectangleBounds.left, mRectangleBounds.right);
+			particleY = getFromRange (mRectangleBounds.bottom, mRectangleBounds.bottom);
+		} else if (sideWithSmallestNumberOfParticles == RectangleSide.LEFT) {
+			particleX = getFromRange (mRectangleBounds.left, mRectangleBounds.left);
+			particleY = getFromRange (mRectangleBounds.top, mRectangleBounds.bottom);
+		} else if (sideWithSmallestNumberOfParticles == RectangleSide.RIGHT) {
+			particleX = getFromRange (mRectangleBounds.right, mRectangleBounds.right);
+			particleY = getFromRange (mRectangleBounds.top, mRectangleBounds.bottom);
 		}
+		p.configure(mTimeToLive, particleX, particleY);
+		p.activate(delay, mModifiers);
 
-
+		mSideToParticles
+				.get(indexOfSideWithSmallestNumberOfParticles)
+				.activatedParticles++;
 		mActiveParticles.add(p);
 		mActivatedParticles++;
 	}
@@ -899,14 +863,26 @@ public class ParticleSystem {
 	}
 
 	private void clearRectangleParticlesPerSide() {
-		if (ParticlesPerSide == null) {
-			ParticlesPerSide = new HashMap<RectangleSide, Integer> ();
+		if (mSideToParticles == null) {
+			mSideToParticles = new ArrayList<SideToParticles> ();
 		}
 
-		ParticlesPerSide.clear();
+		mSideToParticles.clear();
 
 		for (RectangleSide side : RectangleSide.values()) {
-			ParticlesPerSide.put(side, 0);
+			mSideToParticles.add(new SideToParticles(side, 0));
 		}
+	}
+
+	private SideToParticles getSideWithSmallestParticlesAmount() {
+		SideToParticles sideWithMinParticles = mSideToParticles.get(0);
+
+		for (SideToParticles sideToParticles : mSideToParticles) {
+			if (sideToParticles.activatedParticles < sideWithMinParticles.activatedParticles) {
+				sideWithMinParticles = sideToParticles;
+			}
+		}
+
+		return sideWithMinParticles;
 	}
 }
