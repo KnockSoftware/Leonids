@@ -18,10 +18,9 @@ public class EmiterSimpleExampleActivity extends Activity implements OnClickList
 
 	@Override
 	public void onClick(View arg0) {
-		new ParticleSystem(this, 1000, R.drawable.star_pink, 7000)
-				.setDelayedFadeIn(5000, 200)
+		new ParticleSystem(this, 1000, R.drawable.star_pink, 500)
 				.setFadeOut(300)
-				.setSpeedRange(0.02f, 0.025f)
+				.setRandomPositionWithinView(arg0)
 				.emit(arg0, 100);
 	}
 

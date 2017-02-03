@@ -20,6 +20,7 @@ import android.view.animation.LinearInterpolator;
 
 import com.plattysoft.leonids.initializers.AccelerationInitializer;
 import com.plattysoft.leonids.initializers.ParticleInitializer;
+import com.plattysoft.leonids.initializers.RandomPositionInitializer;
 import com.plattysoft.leonids.initializers.RotationInitiazer;
 import com.plattysoft.leonids.initializers.RotationSpeedInitializer;
 import com.plattysoft.leonids.initializers.ScaleInitializer;
@@ -92,7 +93,7 @@ public class ParticleSystem {
 	private int mCircleCenterY;
 	private float mAngleBetweenParticles;
 	private float mLastParticleAngle;
-	private static final float DEGREES_TO_RAD = 0.0174533f;
+	private static final float DEGREE_TO_RAD = 0.0174533f;
 
     private static class ParticleTimerTask extends TimerTask {
 
@@ -483,6 +484,31 @@ public class ParticleSystem {
 		return this;
 	}
 
+	public ParticleSystem setRandomPositionWithinView(View emitter) {
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		int left = location[0];
+		int top = location[1];
+		int right = location[0] + emitter.getWidth();
+		int bottom = location[1] + emitter.getHeight();
+
+		mInitializers.add(new RandomPositionInitializer(new Rect(left, top, right, bottom)));
+		return this;
+	}
+
 	/**
 	 * Starts emiting particles from a specific view. If at some point the number goes over the amount of particles availabe on create
 	 * no new particles will be created
@@ -591,7 +617,6 @@ public class ParticleSystem {
 		configureEmiter(emitterX, emitterY);
 		startEmiting(particlesPerSecond);
 	}
-
 
 	public void updateEmitPoint (int emitterX, int emitterY) {
 		configureEmiter(emitterX, emitterY);
@@ -867,8 +892,8 @@ public class ParticleSystem {
 			mInitializers.get(i).initParticle(p, mRandom);
 		}
 
-		int particleX = (int)(mCircleCenterX + mCircleRadius * Math.cos((double)(mLastParticleAngle * DEGREES_TO_RAD)));
-		int particleY = (int)(mCircleCenterY + mCircleRadius * Math.sin((double)(mLastParticleAngle * DEGREES_TO_RAD)));
+		int particleX = (int)(mCircleCenterX + mCircleRadius * Math.cos((double)(mLastParticleAngle * DEGREE_TO_RAD)));
+		int particleY = (int)(mCircleCenterY + mCircleRadius * Math.sin((double)(mLastParticleAngle * DEGREE_TO_RAD)));
 		mLastParticleAngle += mAngleBetweenParticles;
 
 		p.configure(mTimeToLive, particleX, particleY);

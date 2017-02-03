@@ -1,13 +1,13 @@
 package com.plattysoft.leonids;
 
-import java.util.List;
-
-import com.plattysoft.leonids.modifiers.ParticleModifier;
-
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+
+import com.plattysoft.leonids.modifiers.ParticleModifier;
+
+import java.util.List;
 
 public class Particle {
 
@@ -46,6 +46,7 @@ public class Particle {
 
 	private List<ParticleModifier> mModifiers;
 
+	private boolean mIsInitialPositionSet;
 
 	protected Particle() {		
 		mMatrix = new Matrix();
@@ -63,15 +64,14 @@ public class Particle {
 	}
 	
 	public void configure(long timeToLive, float emiterX, float emiterY) {
-		mBitmapHalfWidth = mImage.getWidth()/2;
-		mBitmapHalfHeight = mImage.getHeight()/2;
-		
-		mInitialX = emiterX - mBitmapHalfWidth;
-		mInitialY = emiterY - mBitmapHalfHeight;
+		setInitialPosition(emiterX, emiterY);
+
 		mCurrentX = mInitialX;
 		mCurrentY = mInitialY;
 		
 		mTimeToLive = timeToLive;
+
+		mIsInitialPositionSet = true;
 	}
 
 	public boolean update (long miliseconds) {
@@ -102,5 +102,17 @@ public class Particle {
 		// We do store a reference to the list, there is no need to copy, since the modifiers do not carte about states 
 		mModifiers = modifiers;
 		return this;
+	}
+
+	public void setInitialPosition(float emitterX, float emitterY) {
+		if (!mIsInitialPositionSet) {
+			mBitmapHalfWidth = mImage.getWidth()/2;
+			mBitmapHalfHeight = mImage.getHeight()/2;
+
+			mInitialX = emitterX - mBitmapHalfWidth;
+			mInitialY = emitterY - mBitmapHalfHeight;
+
+			mIsInitialPositionSet = true;
+		}
 	}
 }

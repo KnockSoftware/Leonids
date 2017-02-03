@@ -18,6 +18,7 @@
         android:layout_width="384dp"
         android:layout_height="384dp"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true" />
+        android:layout_centerVertical="true"
+        android:background="@android:color/darker_gray"/>
 
 </RelativeLayout>
