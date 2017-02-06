@@ -1,14 +1,21 @@
 package com.plattysoft.leonids.initializers;
 
 import com.plattysoft.leonids.Particle;
+import com.plattysoft.leonids.initializers.quadrant.FirstQuadrantSpeedCorrector;
+import com.plattysoft.leonids.initializers.quadrant.ForthQuadrantSpeedCorrector;
+import com.plattysoft.leonids.initializers.quadrant.SecondQuadrantSpeedCorrector;
+import com.plattysoft.leonids.initializers.quadrant.SpeedCorrector;
+import com.plattysoft.leonids.initializers.quadrant.ThirdQuadrantSpeedCorrector;
+import com.plattysoft.leonids.utils.RandomUtils;
 
+import java.util.HashMap;
 import java.util.Random;
 
 /**
  * Created by artsiomkaliaha on 2/6/17.
  */
 
-public class SpeedToCircleCenterInitializer extends SpeeddModuleAndRangeInitializer {
+public class SpeedToCircleCenterInitializer implements ParticleInitializer {
 
     private enum Quadrant {
 
@@ -62,78 +69,48 @@ public class SpeedToCircleCenterInitializer extends SpeeddModuleAndRangeInitiali
 
     private final float mCenterX;
     private final float mCenterY;
+    private final float mSpeed;
 
     private final float[] mXAxisVector;
 
-    public SpeedToCircleCenterInitializer(float speedMin, float speedMax, int minAngle, int maxAngle, float centerX, float centerY) {
-        super(speedMin, speedMax, minAngle, maxAngle);
+    private HashMap<Integer, SpeedCorrector> SpeedCorrectors = new HashMap<Integer, SpeedCorrector>() {{
+        put(1, new FirstQuadrantSpeedCorrector());
+        put(2, new SecondQuadrantSpeedCorrector());
+        put(3, new ThirdQuadrantSpeedCorrector());
+        put(4, new ForthQuadrantSpeedCorrector());
+    }};
+
+    public SpeedToCircleCenterInitializer(float speedMin, float speedMax, float centerX, float centerY) {
+        mSpeed = RandomUtils.nextFloat(speedMin, speedMax);
 
         mCenterX = centerX;
         mCenterY = centerY;
 
+        //vector aligned with x axis
         mXAxisVector = new float[2];
         mXAxisVector[0] = 2;
         mXAxisVector[1] = 0;
     }
 
     @Override
-    public void initParticle(Particle p, Random r) {
-        super.initParticle(p, r);
+    public void initParticle(Particle particle, Random r) {
+        float pureParticleX = particle.mInitialX - mCenterX;
+        float pureParticleY = particle.mInitialY - mCenterY;
 
-        int quadrant = getQuadrant(p);
-
-        float normalizedX = p.mInitialX - mCenterX;
-        float normalizedY = p.mInitialY - mCenterY;
-
-        float scalarMultiplicationOfVectors = normalizedX * mXAxisVector[0] + normalizedY * mXAxisVector[1];
-
-        float particleVectorModule = (float)Math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
+        float scalarMultiplicationOfVectors = pureParticleX * mXAxisVector[0] + pureParticleY * mXAxisVector[1];
+        float particleVectorModule = (float)Math.sqrt(pureParticleX * pureParticleX + pureParticleY * pureParticleY);
         float xAxisVectorModule = (float)Math.sqrt(mXAxisVector[0] * mXAxisVector[0] + mXAxisVector[1] * mXAxisVector[1]);
+
         double rawAngleRad = Math.acos(scalarMultiplicationOfVectors / (particleVectorModule * xAxisVectorModule));
-        int rawAngleDegrees = 360 - (int)((180 * rawAngleRad) / Math.PI);
+//        int rawAngleDegrees = 360 - (int)((180 * rawAngleRad) / Math.PI);
+//        float angleInRads = (float) (rawAngleDegrees * Math.PI/180f);
 
-        float angleInRads = (float) (rawAngleDegrees * Math.PI/180f);
-        p.mSpeedX = (float) (mSpeedMin * Math.cos(angleInRads));
-        p.mSpeedY = (float) (mSpeedMin * Math.sin(angleInRads));
+        particle.mSpeedX = (float) (mSpeed * Math.cos(rawAngleRad));
+        particle.mSpeedY = (float) (mSpeed * Math.sin(rawAngleRad));
 
-        switch (quadrant) {
-            case 1: {
-                if (p.mSpeedX > 0) {
-                    p.mSpeedX = -p.mSpeedX;
-                }
-                if (p.mSpeedY > 0) {
-                    p.mSpeedY = -p.mSpeedY;
-                }
-            }
-            break;
-            case 2: {
-                if (p.mSpeedX > 0) {
-                    p.mSpeedX = -p.mSpeedX;
-                }
-                if (p.mSpeedY < 0) {
-                    p.mSpeedY = -p.mSpeedY;
-                }
-            }
-            break;
-            case 3: {
-                if (p.mSpeedX < 0) {
-                    p.mSpeedX = -p.mSpeedX;
-                }
-                if (p.mSpeedY < 0) {
-                    p.mSpeedY = -p.mSpeedY;
-                }
-            }
-            break;
-            case 4: {
-                if (p.mSpeedX < 0) {
-                    p.mSpeedX = -p.mSpeedX;
-                }
-                if (p.mSpeedY > 0) {
-                    p.mSpeedY = -p.mSpeedY;
-                }
-            }
-            break;
-        }
+        SpeedCorrectors
+                .get(getQuadrant(particle))
+                .apply(particle);
     }
 
     private int getQuadrant(Particle p) {

@@ -28,7 +28,6 @@ import com.plattysoft.leonids.initializers.ScaleInitializer;
 import com.plattysoft.leonids.initializers.SpeedToCircleCenterInitializer;
 import com.plattysoft.leonids.initializers.SpeeddByComponentsInitializer;
 import com.plattysoft.leonids.initializers.SpeeddModuleAndRangeInitializer;
-import com.plattysoft.leonids.modifiers.AccelerationToCircleCenterModifier;
 import com.plattysoft.leonids.modifiers.AlphaModifier;
 import com.plattysoft.leonids.modifiers.ParticleModifier;
 
@@ -394,25 +393,22 @@ public class ParticleSystem {
 		return this;
 	}
 
-	public ParticleSystem setAccelerationToCircleCenterModifier(View emitter) {
+	/**
+	 * Initializes movement to the center of a circle. Speed is non
+	 * negative and is described in pixels per millisecond.
+	 * @param emitter View from which emitting is produced
+	 * @param speedMax The maximum speed.
+	 * @param speedMin The maximum speed.
+	 * @return This.
+	 */
+	public ParticleSystem setSpeedModuleToCircleCenterInitializer(View emitter, float speedMin, float speedMax) {
 		int[] location = new int[2];
 		emitter.getLocationInWindow(location);
 
 		int circleCenterX = location[0] + emitter.getWidth() / 2;
 		int circleCenterY = location[1] + emitter.getHeight() / 2;
-		mModifiers.add(new AccelerationToCircleCenterModifier(circleCenterX, circleCenterY, 4000, 0, 0));
 
-		return this;
-	}
-
-	public ParticleSystem setSpeedModuleToCircleCenterInitializer(View emitter) {
-		int[] location = new int[2];
-		emitter.getLocationInWindow(location);
-
-		int circleCenterX = location[0] + emitter.getWidth() / 2;
-		int circleCenterY = location[1] + emitter.getHeight() / 2;
-
-		mInitializers.add(new SpeedToCircleCenterInitializer(0.05f, 0.06f, 0, 360, circleCenterX, circleCenterY));
+		mInitializers.add(new SpeedToCircleCenterInitializer(speedMin, speedMax, circleCenterX, circleCenterY));
 
 		return this;
 	}
