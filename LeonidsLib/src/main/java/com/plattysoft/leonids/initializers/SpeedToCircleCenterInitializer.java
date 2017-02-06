@@ -60,14 +60,20 @@ public class SpeedToCircleCenterInitializer extends SpeeddModuleAndRangeInitiali
         }
     }
 
-    private float mCenterX;
-    private float mCenterY;
+    private final float mCenterX;
+    private final float mCenterY;
+
+    private final float[] mXAxisVector;
 
     public SpeedToCircleCenterInitializer(float speedMin, float speedMax, int minAngle, int maxAngle, float centerX, float centerY) {
         super(speedMin, speedMax, minAngle, maxAngle);
 
         mCenterX = centerX;
         mCenterY = centerY;
+
+        mXAxisVector = new float[2];
+        mXAxisVector[0] = 2;
+        mXAxisVector[1] = 0;
     }
 
     @Override
@@ -75,6 +81,20 @@ public class SpeedToCircleCenterInitializer extends SpeeddModuleAndRangeInitiali
         super.initParticle(p, r);
 
         int quadrant = getQuadrant(p);
+
+        float normalizedX = p.mInitialX - mCenterX;
+        float normalizedY = p.mInitialY - mCenterY;
+
+        float scalarMultiplicationOfVectors = normalizedX * mXAxisVector[0] + normalizedY * mXAxisVector[1];
+
+        float particleVectorModule = (float)Math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
+        float xAxisVectorModule = (float)Math.sqrt(mXAxisVector[0] * mXAxisVector[0] + mXAxisVector[1] * mXAxisVector[1]);
+        double rawAngleRad = Math.acos(scalarMultiplicationOfVectors / (particleVectorModule * xAxisVectorModule));
+        int rawAngleDegrees = 360 - (int)((180 * rawAngleRad) / Math.PI);
+
+        float angleInRads = (float) (rawAngleDegrees * Math.PI/180f);
+        p.mSpeedX = (float) (mSpeedMin * Math.cos(angleInRads));
+        p.mSpeedY = (float) (mSpeedMin * Math.sin(angleInRads));
 
         switch (quadrant) {
             case 1: {
