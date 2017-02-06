@@ -1,8 +1,8 @@
 package com.plattysoft.leonids.initializers;
 
-import java.util.Random;
-
 import com.plattysoft.leonids.Particle;
+
+import java.util.Random;
 
 public class SpeeddModuleAndRangeInitializer implements ParticleInitializer {
 
@@ -45,5 +45,4 @@ public class SpeeddModuleAndRangeInitializer implements ParticleInitializer {
 		p.mSpeedX = (float) (speed * Math.cos(angleInRads));
 		p.mSpeedY = (float) (speed * Math.sin(angleInRads));
 	}
-
 }

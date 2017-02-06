@@ -32,8 +32,8 @@ public class Particle {
 	private Matrix mMatrix;
 	private Paint mPaint;
 
-	private float mInitialX;
-	private float mInitialY;
+	public float mInitialX;
+	public float mInitialY;
 
 	private float mRotation;
 

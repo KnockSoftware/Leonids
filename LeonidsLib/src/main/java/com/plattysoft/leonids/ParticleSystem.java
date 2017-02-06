@@ -19,13 +19,16 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
 import com.plattysoft.leonids.initializers.AccelerationInitializer;
+import com.plattysoft.leonids.initializers.CircularInitializer;
 import com.plattysoft.leonids.initializers.ParticleInitializer;
 import com.plattysoft.leonids.initializers.RandomPositionInitializer;
 import com.plattysoft.leonids.initializers.RotationInitiazer;
 import com.plattysoft.leonids.initializers.RotationSpeedInitializer;
 import com.plattysoft.leonids.initializers.ScaleInitializer;
+import com.plattysoft.leonids.initializers.SpeedToCircleCenterInitializer;
 import com.plattysoft.leonids.initializers.SpeeddByComponentsInitializer;
 import com.plattysoft.leonids.initializers.SpeeddModuleAndRangeInitializer;
+import com.plattysoft.leonids.modifiers.AccelerationToCircleCenterModifier;
 import com.plattysoft.leonids.modifiers.AlphaModifier;
 import com.plattysoft.leonids.modifiers.ParticleModifier;
 
@@ -391,6 +394,29 @@ public class ParticleSystem {
 		return this;
 	}
 
+	public ParticleSystem setAccelerationToCircleCenterModifier(View emitter) {
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		int circleCenterX = location[0] + emitter.getWidth() / 2;
+		int circleCenterY = location[1] + emitter.getHeight() / 2;
+		mModifiers.add(new AccelerationToCircleCenterModifier(circleCenterX, circleCenterY, 4000, 0, 0));
+
+		return this;
+	}
+
+	public ParticleSystem setSpeedModuleToCircleCenterInitializer(View emitter) {
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		int circleCenterX = location[0] + emitter.getWidth() / 2;
+		int circleCenterY = location[1] + emitter.getHeight() / 2;
+
+		mInitializers.add(new SpeedToCircleCenterInitializer(0.05f, 0.06f, 0, 360, circleCenterX, circleCenterY));
+
+		return this;
+	}
+
     /**
      * Initializes the acceleration for emitted particles with the given angle. Acceleration is
      * measured in pixels per square millisecond. The angle is measured in degrees with 0°
@@ -506,6 +532,19 @@ public class ParticleSystem {
 		int bottom = location[1] + emitter.getHeight();
 
 		mInitializers.add(new RandomPositionInitializer(new Rect(left, top, right, bottom)));
+		return this;
+	}
+
+	public ParticleSystem setCircularInitialPosition(View emitter) {
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		mCircleRadius = Math.min(emitter.getHeight(), emitter.getWidth()) / 2;
+		mCircleCenterX = location[0] + emitter.getWidth() / 2;
+		mCircleCenterY = location[1] + emitter.getHeight() / 2;
+
+		mInitializers.add(new CircularInitializer(mCircleRadius, mCircleCenterX, mCircleCenterY));
+
 		return this;
 	}
 
