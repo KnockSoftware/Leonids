@@ -49,5 +49,4 @@ public class AlphaModifier implements ParticleModifier {
 			particle.mAlpha = newAlphaValue;
 		}		
 	}
-
 }
