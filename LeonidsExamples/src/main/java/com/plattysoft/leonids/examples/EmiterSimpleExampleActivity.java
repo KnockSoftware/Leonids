@@ -2,7 +2,6 @@ package com.plattysoft.leonids.examples;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 
@@ -19,13 +18,14 @@ public class EmiterSimpleExampleActivity extends Activity implements OnClickList
 
 	@Override
 	public void onClick(View arg0) {
+		//particles moving from bottom to top
 		new ParticleSystem(this, 50, R.drawable.star_pink, 4000)
 				.setScaleRange(0.7f, 1.3f)
 				.setSpeedModuleAndAngleRange(0.008f, 0.016f, -90, -90)
 				.setAcceleration(0.000015f, -90)
-				.setFadeIn(400)
 				.setFadeOut(300)
-				.emitWithGravity(arg0, Gravity.TOP, 8);
+				.setRandomPositionWithinView(arg0)
+				.emit(arg0, 8);
 
 		//rectangular dust
 //		new ParticleSystem(this, 1000, R.drawable.star_pink, 700)

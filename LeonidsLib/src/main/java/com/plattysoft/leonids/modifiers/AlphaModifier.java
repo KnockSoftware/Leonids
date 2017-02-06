@@ -33,16 +33,11 @@ public class AlphaModifier implements ParticleModifier {
 
 	@Override
 	public void apply(Particle particle, long miliseconds) {
-//		if (mIsFinished) {
-//			return;
-//		}
-
 		if (miliseconds < mStartTime && mInitialValue < mFinalValue) {
 			particle.mAlpha = mInitialValue;
 		}
 		else if (miliseconds > mEndTime) {
 			particle.mAlpha = mFinalValue;
-//			mIsFinished = true;
 		} else if (miliseconds > mStartTime) {
 			float interpolaterdValue = mInterpolator.getInterpolation((miliseconds- mStartTime)*1f/mDuration);
 			int newAlphaValue = (int) (mInitialValue + mValueIncrement*interpolaterdValue);
