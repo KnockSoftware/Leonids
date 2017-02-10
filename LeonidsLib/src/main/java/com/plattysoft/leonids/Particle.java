@@ -48,6 +48,10 @@ public class Particle {
 
 	private boolean mIsInitialPositionSet;
 
+	public int getBitmapHalfHeight() {
+		return mBitmapHalfHeight;
+	}
+
 	protected Particle() {		
 		mMatrix = new Matrix();
 		mPaint = new Paint();

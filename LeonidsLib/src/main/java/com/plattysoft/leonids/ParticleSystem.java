@@ -29,6 +29,7 @@ import com.plattysoft.leonids.initializers.SpeedToCircleCenterInitializer;
 import com.plattysoft.leonids.initializers.SpeeddByComponentsInitializer;
 import com.plattysoft.leonids.initializers.SpeeddModuleAndRangeInitializer;
 import com.plattysoft.leonids.modifiers.AlphaModifier;
+import com.plattysoft.leonids.modifiers.CircleScaleAndAlphaModifier;
 import com.plattysoft.leonids.modifiers.ParticleModifier;
 
 import java.lang.ref.WeakReference;
@@ -546,6 +547,18 @@ public class ParticleSystem {
 		mCircleCenterY = location[1] + emitter.getHeight() / 2;
 
 		mInitializers.add(new CircularInitializer(mCircleRadius, mCircleCenterX, mCircleCenterY));
+
+		return this;
+	}
+
+	public ParticleSystem setCircleScaleModifier(View emitter) {
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		float circleCenterX = location[0] + emitter.getWidth() / 2;
+		float circleCenterY = location[1] + emitter.getHeight() / 2;
+
+		mModifiers.add(new CircleScaleAndAlphaModifier(circleCenterX, circleCenterY));
 
 		return this;
 	}
