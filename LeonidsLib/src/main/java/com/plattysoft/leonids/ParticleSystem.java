@@ -401,14 +401,14 @@ public class ParticleSystem {
 	 * @param speedMin The maximum speed.
 	 * @return This.
 	 */
-	public ParticleSystem setSpeedModuleToCircleCenterInitializer(View emitter, float speedMin, float speedMax) {
+	public ParticleSystem setSpeedModuleToCircleCenterInitializer(View emitter, float speedMin, float speedMax, boolean isInsideEmission) {
 		int[] location = new int[2];
 		emitter.getLocationInWindow(location);
 
 		int circleCenterX = location[0] + emitter.getWidth() / 2;
 		int circleCenterY = location[1] + emitter.getHeight() / 2;
 
-		mInitializers.add(new SpeedToCircleCenterInitializer(speedMin, speedMax, circleCenterX, circleCenterY));
+		mInitializers.add(new SpeedToCircleCenterInitializer(speedMin, speedMax, circleCenterX, circleCenterY, isInsideEmission));
 
 		return this;
 	}
@@ -532,10 +532,16 @@ public class ParticleSystem {
 	}
 
 	public ParticleSystem setCircularInitialPosition(View emitter) {
+		setCircularInitialPosition(emitter, 0.5f);
+
+		return this;
+	}
+
+	public ParticleSystem setCircularInitialPosition(View emitter, float circleRadius) {
 		int[] location = new int[2];
 		emitter.getLocationInWindow(location);
 
-		mCircleRadius = Math.min(emitter.getHeight(), emitter.getWidth()) / 2;
+		mCircleRadius = (int)(Math.min(emitter.getHeight(), emitter.getWidth()) / 2 * circleRadius);
 		mCircleCenterX = location[0] + emitter.getWidth() / 2;
 		mCircleCenterY = location[1] + emitter.getHeight() / 2;
 
@@ -987,6 +993,10 @@ public class ParticleSystem {
 	public void stopEmitting () {
 		// The time to be emiting is the current time (as if it was a time-limited emiter
 		mEmitingTime = mCurrentTime;
+
+		for (Particle particle : mActiveParticles) {
+			particle.destroy();
+		}
 	}
 	
 	/**

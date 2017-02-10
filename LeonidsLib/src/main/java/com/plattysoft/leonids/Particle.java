@@ -115,4 +115,8 @@ public class Particle {
 			mIsInitialPositionSet = true;
 		}
 	}
+
+	public void destroy() {
+		mTimeToLive = 0;
+	}
 }

@@ -73,14 +73,9 @@ public class SpeedToCircleCenterInitializer implements ParticleInitializer {
 
     private final float[] mXAxisVector;
 
-    private HashMap<Integer, SpeedCorrector> SpeedCorrectors = new HashMap<Integer, SpeedCorrector>() {{
-        put(1, new FirstQuadrantSpeedCorrector());
-        put(2, new SecondQuadrantSpeedCorrector());
-        put(3, new ThirdQuadrantSpeedCorrector());
-        put(4, new ForthQuadrantSpeedCorrector());
-    }};
+    private HashMap<Integer, SpeedCorrector> SpeedCorrectors;
 
-    public SpeedToCircleCenterInitializer(float speedMin, float speedMax, float centerX, float centerY) {
+    public SpeedToCircleCenterInitializer(float speedMin, float speedMax, float centerX, float centerY, boolean isInsideEmission) {
         mSpeed = RandomUtils.nextFloat(speedMin, speedMax);
 
         mCenterX = centerX;
@@ -90,6 +85,12 @@ public class SpeedToCircleCenterInitializer implements ParticleInitializer {
         mXAxisVector = new float[2];
         mXAxisVector[0] = 2;
         mXAxisVector[1] = 0;
+
+        SpeedCorrectors = new HashMap<Integer, SpeedCorrector>();
+        SpeedCorrectors.put(1, new FirstQuadrantSpeedCorrector(isInsideEmission));
+        SpeedCorrectors.put(2, new SecondQuadrantSpeedCorrector(isInsideEmission));
+        SpeedCorrectors.put(3, new ThirdQuadrantSpeedCorrector(isInsideEmission));
+        SpeedCorrectors.put(4, new ForthQuadrantSpeedCorrector(isInsideEmission));
     }
 
     @Override

@@ -7,12 +7,19 @@ import com.plattysoft.leonids.Particle;
  */
 
 public class ForthQuadrantSpeedCorrector implements SpeedCorrector {
+
+    private boolean mIsInsideEmission;
+
+    public ForthQuadrantSpeedCorrector(boolean mIsInsideEmission) {
+        this.mIsInsideEmission = mIsInsideEmission;
+    }
+
     @Override
     public void apply(Particle particle) {
-        if (particle.mSpeedX < 0) {
+        if (mIsInsideEmission ? particle.mSpeedX < 0 : particle.mSpeedX > 0) {
             particle.mSpeedX = -particle.mSpeedX;
         }
-        if (particle.mSpeedY > 0) {
+        if (mIsInsideEmission ? particle.mSpeedY > 0 : particle.mSpeedY < 0) {
             particle.mSpeedY = -particle.mSpeedY;
         }
     }
