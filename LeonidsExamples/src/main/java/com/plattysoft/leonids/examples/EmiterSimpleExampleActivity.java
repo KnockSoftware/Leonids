@@ -1,9 +1,7 @@
 package com.plattysoft.leonids.examples;
 
-import com.plattysoft.leonids.ParticleSystem;
-
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 
@@ -18,9 +16,57 @@ public class EmiterSimpleExampleActivity extends Activity implements OnClickList
 
 	@Override
 	public void onClick(View arg0) {
-		new ParticleSystem(this, 50, R.drawable.star_pink, 1000)
-		.setSpeedRange(0.1f, 0.25f)
-		.emit(arg0, 100);
-	}
+		//particles moving from bottom to top
+//		new ParticleSystem(this, 50, R.drawable.star_pink, 4000)
+//				.setScaleRange(0.7f, 1.3f)
+//				.setSpeedModuleAndAngleRange(0.008f, 0.016f, -90, -90)
+//				.setAcceleration(0.000015f, -90)
+//				.setFadeOut(300)
+//				.setRandomPositionWithinView(arg0)
+//				.emit(arg0, 8);
 
+
+		//rectangular dust
+//		new ParticleSystem(this, 1000, R.drawable.star_pink, 700)
+//				.setSpeedRange(0.04f, 0.05f)
+//				.setAccelerationModuleAndAndAngleRange(0.00003f, 0.00007f, 0, 360)
+//				.setFadeOut(300)
+//				.oneRectangularShot(arg0, 1000);
+
+		//circular dust
+//		new ParticleSystem(this, 1000, R.drawable.star_pink, 700)
+//				.setSpeedRange(0.04f, 0.05f)
+//				.setAccelerationModuleAndAndAngleRange(0.00003f, 0.00007f, -180, 0)
+//				.setFadeOut(300)
+//				.oneCircularShot(arg0, 1000);
+
+		//infinity
+//		new ParticleSystem(this, 1000, R.drawable.star_pink, 1000)
+//				.setFadeOut(300)
+//				.setSpeedRange(0.02f, 0.025f)
+//				.setCircularInitialPosition(arg0, 0.7f)
+//				.setSpeedModuleToCircleCenterInitializer(arg0, 0.25f, 0.25f, false)
+//				.emit(arg0, 200);
+
+		//night sky
+//		new ParticleSystem(this, 1000, R.drawable.star_pink, 500)
+//				.setFadeOut(300)
+//				.setRandomPositionWithinView(arg0)
+//				.emitFromRectangle(arg0, 100);
+
+		//to the center of a circle
+//		new ParticleSystem(this, 1000, R.drawable.icon_home_unlock, 1900)
+//				.setCircularInitialPosition(arg0)
+//				.setSpeedModuleToCircleCenterInitializer(arg0, 0.25f, 0.25f, true)
+//				.setRotationSpeed(180)
+//				.setCircleScaleModifier(arg0)
+//				.emit(arg0, 5);
+
+		//extra effect chaos
+//		new ParticleSystem(this, 1000, R.drawable.star_pink, 7000)
+//				.setDelayedFadeIn(5000, 200)
+//				.setFadeOut(300)
+//				.setSpeedRange(0.02f, 0.025f)
+//				.emitFromRectangle(arg0, 100);
+	}
 }

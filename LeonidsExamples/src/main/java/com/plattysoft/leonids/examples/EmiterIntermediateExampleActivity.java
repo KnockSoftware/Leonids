@@ -1,12 +1,13 @@
 package com.plattysoft.leonids.examples;
 
-import com.plattysoft.leonids.ParticleSystem;
-
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.AccelerateInterpolator;
+
+import com.plattysoft.leonids.ParticleSystem;
 
 public class EmiterIntermediateExampleActivity extends Activity implements OnClickListener {
 
@@ -18,14 +19,14 @@ public class EmiterIntermediateExampleActivity extends Activity implements OnCli
 	}
 
 	@Override
-	public void onClick(View arg0) {		
-		ParticleSystem ps = new ParticleSystem(this, 100, R.drawable.star_pink, 1000);
+	public void onClick(View arg0) {
+		ParticleSystem ps = new ParticleSystem(this, 50, R.drawable.star_pink, 4000);
 		ps.setScaleRange(0.7f, 1.3f);
-		ps.setSpeedModuleAndAngleRange(0.07f, 0.16f, 0, 180);
-		ps.setRotationSpeedRange(90, 180);
-		ps.setAcceleration(0.00013f, 90);
-		ps.setFadeOut(200, new AccelerateInterpolator());
-		ps.emit(arg0, 100);
+		ps.setSpeedModuleAndAngleRange(0.017f, 0.034f, -90, -90);
+//		ps.setAcceleration(0.00015f, -90);
+		ps.setFadeIn(400, new AccelerateInterpolator());
+		ps.setFadeOut(300, new AccelerateInterpolator());
+		ps.emitWithGravity(arg0, Gravity.TOP | Gravity.CENTER_HORIZONTAL /*| Gravity.BOTTOM | Gravity.RIGHT*/, 8);
 	}
 
 }

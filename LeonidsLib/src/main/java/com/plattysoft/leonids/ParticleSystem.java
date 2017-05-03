@@ -1,21 +1,5 @@
 package com.plattysoft.leonids;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import com.plattysoft.leonids.initializers.AccelerationInitializer;
-import com.plattysoft.leonids.initializers.ParticleInitializer;
-import com.plattysoft.leonids.initializers.RotationInitiazer;
-import com.plattysoft.leonids.initializers.RotationSpeedInitializer;
-import com.plattysoft.leonids.initializers.ScaleInitializer;
-import com.plattysoft.leonids.initializers.SpeeddByComponentsInitializer;
-import com.plattysoft.leonids.initializers.SpeeddModuleAndRangeInitializer;
-import com.plattysoft.leonids.modifiers.AlphaModifier;
-import com.plattysoft.leonids.modifiers.ParticleModifier;
-
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.animation.ValueAnimator;
@@ -23,6 +7,7 @@ import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -33,9 +18,44 @@ import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
+import com.plattysoft.leonids.initializers.AccelerationInitializer;
+import com.plattysoft.leonids.initializers.CircularInitializer;
+import com.plattysoft.leonids.initializers.ParticleInitializer;
+import com.plattysoft.leonids.initializers.RandomPositionInitializer;
+import com.plattysoft.leonids.initializers.RotationInitiazer;
+import com.plattysoft.leonids.initializers.RotationSpeedInitializer;
+import com.plattysoft.leonids.initializers.ScaleInitializer;
+import com.plattysoft.leonids.initializers.SpeedToCircleCenterInitializer;
+import com.plattysoft.leonids.initializers.SpeeddByComponentsInitializer;
+import com.plattysoft.leonids.initializers.SpeeddModuleAndRangeInitializer;
+import com.plattysoft.leonids.modifiers.AlphaModifier;
+import com.plattysoft.leonids.modifiers.CircleScaleAndAlphaModifier;
+import com.plattysoft.leonids.modifiers.ParticleModifier;
+
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ParticleSystem {
+
+	private enum EmitterShape { NONE, RECTANGLE, CIRCLE }
+
+	private enum RectangleSide { TOP, BOTTOM, RIGHT, LEFT }
+
+	private static class SideToParticles {
+
+		RectangleSide side;
+		int activatedParticles;
+
+		public SideToParticles(RectangleSide side, int activatedParticles) {
+			this.side = side;
+			this.activatedParticles = activatedParticles;
+		}
+	}
+
 	private static final long TIMMERTASK_INTERVAL = 15;
 	private ViewGroup mParentView;
 	private int mMaxParticles;
@@ -65,6 +85,18 @@ public class ParticleSystem {
 	private int mEmiterXMax;
 	private int mEmiterYMin;
 	private int mEmiterYMax;
+
+	private EmitterShape Shape = EmitterShape.NONE;
+
+	private Rect mRectangleBounds;
+	private List<SideToParticles> mSideToParticles;
+
+	private int mCircleRadius;
+	private int mCircleCenterX;
+	private int mCircleCenterY;
+	private float mAngleBetweenParticles;
+	private float mLastParticleAngle;
+	private static final float DEGREE_TO_RAD = 0.0174533f;
 
     private static class ParticleTimerTask extends TimerTask {
 
@@ -363,6 +395,26 @@ public class ParticleSystem {
 		return this;
 	}
 
+	/**
+	 * Initializes movement to the center of a circle. Speed is non
+	 * negative and is described in pixels per millisecond.
+	 * @param emitter View from which emitting is produced
+	 * @param speedMax The maximum speed.
+	 * @param speedMin The maximum speed.
+	 * @return This.
+	 */
+	public ParticleSystem setSpeedModuleToCircleCenterInitializer(View emitter, float speedMin, float speedMax, boolean isInsideEmission) {
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		int circleCenterX = location[0] + emitter.getWidth() / 2;
+		int circleCenterY = location[1] + emitter.getHeight() / 2;
+
+		mInitializers.add(new SpeedToCircleCenterInitializer(speedMin, speedMax, circleCenterX, circleCenterY, isInsideEmission));
+
+		return this;
+	}
+
     /**
      * Initializes the acceleration for emitted particles with the given angle. Acceleration is
      * measured in pixels per square millisecond. The angle is measured in degrees with 0°
@@ -410,11 +462,106 @@ public class ParticleSystem {
 
 	/**
 	 * Configures a fade out for the particles when they disappear
+	 *
+	 * @param milisecondsBeforeEnd fade out duration in milliseconds
+	 * @param interpolator the interpolator for the fade out (default is linear)
+	 */
+	public ParticleSystem setFadeIn(long milisecondsBeforeEnd, Interpolator interpolator) {
+		mModifiers.add(new AlphaModifier(0, 255, 0, milisecondsBeforeEnd, interpolator));
+		return this;
+	}
+
+	/**
+	 * Configures a fade out for the particles when they disappear
+	 *
+	 * @param interpolator the interpolator for the fade out (default is linear)
+	 */
+	public ParticleSystem setDelayedFadeIn(long delay, long fadeDuration, Interpolator interpolator) {
+		mModifiers.add(new AlphaModifier(0, 255, delay, delay + fadeDuration, interpolator));
+		return this;
+	}
+
+	/**
+	 * Configures a fade out for the particles when they disappear
 	 * 
 	 * @param duration fade out duration in milliseconds
 	 */
 	public ParticleSystem setFadeOut(long duration) {
 		return setFadeOut(duration, new LinearInterpolator());
+	}
+
+	/**
+	 * Configures a fade in for the particles when they appear
+	 *
+	 * @param duration fade out duration in milliseconds
+	 */
+	public ParticleSystem setFadeIn(long duration) {
+		return setFadeIn(duration, new LinearInterpolator());
+	}
+
+	/**
+	 * Configures a fade out for the particles when they disappear
+	 *
+	 */
+	public ParticleSystem setDelayedFadeIn(long delay, long fadeDuration) {
+		setDelayedFadeIn(delay, fadeDuration, new LinearInterpolator());
+		return this;
+	}
+
+	public ParticleSystem setRandomPositionWithinView(View emitter) {
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+		//TODO
+
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		int left = location[0];
+		int top = location[1];
+		int right = location[0] + emitter.getWidth();
+		int bottom = location[1] + emitter.getHeight();
+
+		mInitializers.add(new RandomPositionInitializer(new Rect(left, top, right, bottom)));
+		return this;
+	}
+
+	public ParticleSystem setCircularInitialPosition(View emitter) {
+		setCircularInitialPosition(emitter, 0.5f);
+
+		return this;
+	}
+
+	public ParticleSystem setCircularInitialPosition(View emitter, float circleRadius) {
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		mCircleRadius = (int)(Math.min(emitter.getHeight(), emitter.getWidth()) / 2 * circleRadius);
+		mCircleCenterX = location[0] + emitter.getWidth() / 2;
+		mCircleCenterY = location[1] + emitter.getHeight() / 2;
+
+		mInitializers.add(new CircularInitializer(mCircleRadius, mCircleCenterX, mCircleCenterY));
+
+		return this;
+	}
+
+	public ParticleSystem setCircleScaleModifier(View emitter) {
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		float circleCenterX = location[0] + emitter.getWidth() / 2;
+		float circleCenterY = location[1] + emitter.getHeight() / 2;
+
+		mModifiers.add(new CircleScaleAndAlphaModifier(circleCenterX, circleCenterY));
+
+		return this;
 	}
 
 	/**
@@ -469,7 +616,19 @@ public class ParticleSystem {
 		configureEmiter(emiter, gravity);
 		startEmiting(particlesPerSecond);
 	}
-	
+
+	/**
+	 * Starts emitting particles from a specific view with a rectangular shape.
+	 *
+	 * @param emitter  View from which center the particles will be emited
+	 * @param particlesPerSecond Number of particles per second that will be emited (evenly distributed)
+	 */
+	public void emitFromRectangle(View emitter, int particlesPerSecond) {
+		Shape = EmitterShape.RECTANGLE;
+		configureRectangularEmitter(emitter);
+		startEmiting(particlesPerSecond);
+	}
+
 	private void startEmiting(int particlesPerSecond) {
 		mActivatedParticles = 0;
 		mParticlesPerMilisecond = particlesPerSecond/1000f;
@@ -517,7 +676,6 @@ public class ParticleSystem {
 		startEmiting(particlesPerSecond);
 	}
 
-
 	public void updateEmitPoint (int emitterX, int emitterY) {
 		configureEmiter(emitterX, emitterY);
 	}
@@ -538,7 +696,7 @@ public class ParticleSystem {
 
 	/**
 	 * Launches particles in one Shot using a special Interpolator
-	 * 
+	 *
 	 * @param emiter View from which center the particles will be emited
 	 * @param numParticles number of particles launched on the one shot
 	 * @param interpolator the interpolator for the time
@@ -551,7 +709,77 @@ public class ParticleSystem {
 		for (int i=0; i<numParticles && i<mMaxParticles; i++) {
 			activateParticle(0);
 		}
-		// Add a full size view to the parent view		
+		// Add a full size view to the parent view
+		mDrawingView = new ParticleField(mParentView.getContext());
+		mParentView.addView(mDrawingView);
+		mDrawingView.setParticles(mActiveParticles);
+		// We start a property animator that will call us to do the update
+		// Animate from 0 to timeToLiveMax
+		startAnimator(interpolator, mTimeToLive);
+	}
+
+	/**
+	 * Launches particles in one Shot
+	 *
+	 * @param emitter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 */
+	public void oneRectangularShot(View emitter, int numParticles) {
+		oneRectangularShot(emitter, numParticles, new LinearInterpolator());
+	}
+
+	/**
+	 * Launches particles in one Shot
+	 *
+	 * @param emitter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 * @param interpolator the interpolator for the time
+	 */
+	public void oneRectangularShot(View emitter, int numParticles, Interpolator interpolator) {
+		clearRectangleParticlesPerSide();
+
+		configureRectangularEmitter(emitter);
+		mActivatedParticles = 0;
+		mEmitingTime = mTimeToLive;
+		// We create particles based in the parameters
+		for (int i=0; i<numParticles && i<mMaxParticles; i++) {
+			activateRectangularParticle(0);
+		}
+		// Add a full size view to the parent view
+		mDrawingView = new ParticleField(mParentView.getContext());
+		mParentView.addView(mDrawingView);
+		mDrawingView.setParticles(mActiveParticles);
+		// We start a property animator that will call us to do the update
+		// Animate from 0 to timeToLiveMax
+		startAnimator(interpolator, mTimeToLive);
+	}
+
+	/**
+	 * Launches particles in one Shot
+	 *
+	 * @param emitter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 */
+	public void oneCircularShot(View emitter, int numParticles) {
+		oneCircularShot(emitter, numParticles, new LinearInterpolator());
+	}
+
+	/**
+	 * Launches particles in one Shot
+	 *
+	 * @param emitter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 * @param interpolator the interpolator for the time
+	 */
+	public void oneCircularShot(View emitter, int numParticles, Interpolator interpolator) {
+		configureCircularEmitter(emitter, numParticles);
+		mActivatedParticles = 0;
+		mEmitingTime = mTimeToLive;
+		// We create particles based in the parameters
+		for (int i=0; i<numParticles && i<mMaxParticles; i++) {
+			activateCircularParticle (0);
+		}
+		// Add a full size view to the parent view
 		mDrawingView = new ParticleField(mParentView.getContext());
 		mParentView.addView(mDrawingView);
 		mDrawingView.setParticles(mActiveParticles);
@@ -635,6 +863,27 @@ public class ParticleSystem {
 		}
 	}
 
+	private void configureRectangularEmitter(View emitter) {
+		// It works with an emision range
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		mRectangleBounds = new Rect(location[0], location[1], location[0] + emitter.getWidth(), location[1] + emitter.getHeight());
+	}
+
+	private void configureCircularEmitter(View emitter, int numParticles) {
+		// It works with an emision range
+		int[] location = new int[2];
+		emitter.getLocationInWindow(location);
+
+		mCircleRadius = Math.min(emitter.getHeight(), emitter.getWidth()) / 2;
+		mCircleCenterX = location[0] + emitter.getWidth() / 2;
+		mCircleCenterY = location[1] + emitter.getHeight() / 2;
+
+		mAngleBetweenParticles = 360 / (float)numParticles;
+		mLastParticleAngle = 0;
+	}
+
 	private boolean hasGravity(int gravity, int gravityToCheck) {
 		return (gravity & gravityToCheck) == gravityToCheck;
 	}
@@ -648,6 +897,63 @@ public class ParticleSystem {
 		}
 		int particleX = getFromRange (mEmiterXMin, mEmiterXMax);
 		int particleY = getFromRange (mEmiterYMin, mEmiterYMax);
+		p.configure(mTimeToLive, particleX, particleY);
+		p.activate(delay, mModifiers);
+		mActiveParticles.add(p);
+		mActivatedParticles++;
+	}
+
+	private void activateRectangularParticle(long delay) {
+		Particle p = mParticles.remove(0);
+		p.init();
+		// Initialization goes before configuration, scale is required before can be configured properly
+		for (int i=0; i<mInitializers.size(); i++) {
+			mInitializers.get(i).initParticle(p, mRandom);
+		}
+
+		int indexOfSideWithSmallestNumberOfParticles = mSideToParticles.indexOf(getSideWithSmallestParticlesAmount());
+		RectangleSide sideWithSmallestNumberOfParticles = mSideToParticles
+				.get(indexOfSideWithSmallestNumberOfParticles)
+				.side;
+
+		int particleX = 0;
+		int particleY = 0;
+
+		if (sideWithSmallestNumberOfParticles == RectangleSide.TOP) {
+			particleX = getFromRange (mRectangleBounds.left, mRectangleBounds.right);
+			particleY = getFromRange (mRectangleBounds.top, mRectangleBounds.top);
+		} else if (sideWithSmallestNumberOfParticles == RectangleSide.BOTTOM) {
+			particleX = getFromRange (mRectangleBounds.left, mRectangleBounds.right);
+			particleY = getFromRange (mRectangleBounds.bottom, mRectangleBounds.bottom);
+		} else if (sideWithSmallestNumberOfParticles == RectangleSide.LEFT) {
+			particleX = getFromRange (mRectangleBounds.left, mRectangleBounds.left);
+			particleY = getFromRange (mRectangleBounds.top, mRectangleBounds.bottom);
+		} else if (sideWithSmallestNumberOfParticles == RectangleSide.RIGHT) {
+			particleX = getFromRange (mRectangleBounds.right, mRectangleBounds.right);
+			particleY = getFromRange (mRectangleBounds.top, mRectangleBounds.bottom);
+		}
+		p.configure(mTimeToLive, particleX, particleY);
+		p.activate(delay, mModifiers);
+
+		mSideToParticles
+				.get(indexOfSideWithSmallestNumberOfParticles)
+				.activatedParticles++;
+		mActiveParticles.add(p);
+		mActivatedParticles++;
+	}
+
+	private void activateCircularParticle(long delay) {
+		Particle p = mParticles.remove(0);
+		p.init();
+		// Initialization goes before configuration, scale is required before can be configured properly
+		for (int i=0; i<mInitializers.size(); i++) {
+			mInitializers.get(i).initParticle(p, mRandom);
+		}
+
+		int particleX = (int)(mCircleCenterX + mCircleRadius * Math.cos((double)(mLastParticleAngle * DEGREE_TO_RAD)));
+		int particleY = (int)(mCircleCenterY + mCircleRadius * Math.sin((double)(mLastParticleAngle * DEGREE_TO_RAD)));
+		mLastParticleAngle += mAngleBetweenParticles;
+
 		p.configure(mTimeToLive, particleX, particleY);
 		p.activate(delay, mModifiers);
 		mActiveParticles.add(p);
@@ -671,7 +977,11 @@ public class ParticleSystem {
 				!mParticles.isEmpty() && // We have particles in the pool 
 				mActivatedParticles < mParticlesPerMilisecond*miliseconds) { // and we are under the number of particles that should be launched
 			// Activate a new particle
-			activateParticle(miliseconds);			
+			if (Shape == EmitterShape.RECTANGLE) {
+				activateRectangularParticle(miliseconds);
+			} else {
+				activateParticle(miliseconds);
+			}
 		}
 		synchronized(mActiveParticles) {
 			for (int i = 0; i < mActiveParticles.size(); i++) {
@@ -701,10 +1011,14 @@ public class ParticleSystem {
 	public void stopEmitting () {
 		// The time to be emiting is the current time (as if it was a time-limited emiter
 		mEmitingTime = mCurrentTime;
-		if (mTimer != null) {
-			mTimer.cancel();
-			mTimer.purge();
-			mTimerTask.cancel();
+        if (mTimer != null) {
+            mTimer.cancel();
+            mTimer.purge();
+            mTimerTask.cancel();
+        }
+        
+		for (Particle particle : mActiveParticles) {
+			particle.destroy();
 		}
 	}
 	
@@ -724,6 +1038,8 @@ public class ParticleSystem {
 	}
 
 	private void updateParticlesBeforeStartTime(int particlesPerSecond) {
+		clearRectangleParticlesPerSide();
+
 		if (particlesPerSecond == 0) {
 			return;
 		}
@@ -736,5 +1052,29 @@ public class ParticleSystem {
 		for (int i = 1; i <= framesCount; i++) {
 			onUpdate(frameTimeInMs * i + 1);
 		}
+	}
+
+	private void clearRectangleParticlesPerSide() {
+		if (mSideToParticles == null) {
+			mSideToParticles = new ArrayList<SideToParticles> ();
+		}
+
+		mSideToParticles.clear();
+
+		for (RectangleSide side : RectangleSide.values()) {
+			mSideToParticles.add(new SideToParticles(side, 0));
+		}
+	}
+
+	private SideToParticles getSideWithSmallestParticlesAmount() {
+		SideToParticles sideWithMinParticles = mSideToParticles.get(0);
+
+		for (SideToParticles sideToParticles : mSideToParticles) {
+			if (sideToParticles.activatedParticles < sideWithMinParticles.activatedParticles) {
+				sideWithMinParticles = sideToParticles;
+			}
+		}
+
+		return sideWithMinParticles;
 	}
 }
