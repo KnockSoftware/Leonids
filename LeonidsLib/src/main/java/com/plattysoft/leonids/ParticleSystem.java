@@ -998,9 +998,9 @@ public class ParticleSystem {
 
 	private void cleanupAnimation() {
 		mParentView.removeView(mDrawingView);
+        mParentView.postInvalidate();
 		mParentView = null;
 		mDrawingView = null;
-		mParentView.postInvalidate();
 		mParticles.addAll(mActiveParticles);
 	}
 
