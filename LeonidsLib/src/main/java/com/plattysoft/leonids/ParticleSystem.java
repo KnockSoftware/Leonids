@@ -702,7 +702,19 @@ public class ParticleSystem {
 	 * @param interpolator the interpolator for the time
 	 */
 	public void oneShot(View emiter, int numParticles, Interpolator interpolator) {
-		configureEmiter(emiter, Gravity.CENTER);
+		oneShot(emiter, numParticles, new LinearInterpolator(), Gravity.CENTER);
+	}
+	
+	/**
+	 * Launches particles in one Shot using a special Interpolator
+	 *
+	 * @param emiter View from which center the particles will be emited
+	 * @param numParticles number of particles launched on the one shot
+	 * @param interpolator the interpolator for the time
+	 * @param gravity the gravity
+	 */
+	public void oneShot(View emiter, int numParticles, Interpolator interpolator, int gravity) {
+		configureEmiter(emiter, gravity);
 		mActivatedParticles = 0;
 		mEmitingTime = mTimeToLive;
 		// We create particles based in the parameters
