@@ -837,7 +837,11 @@ public class ParticleSystem {
 		emiter.getLocationInWindow(location);
 		
 		// Check horizontal gravity and set range
-		if (hasGravity(gravity, Gravity.LEFT)) {
+		if (hasGravity(gravity, Gravity.FILL_HORIZONTAL)) {
+			// All the range
+			mEmiterXMin = location[0] - mParentLocation[0];
+			mEmiterXMax = location[0] + emiter.getWidth() - mParentLocation[0];
+		} else if (hasGravity(gravity, Gravity.LEFT)) {
 			mEmiterXMin = location[0] - mParentLocation[0];
 			mEmiterXMax = mEmiterXMin;
 		}
@@ -856,7 +860,11 @@ public class ParticleSystem {
 		}
 		
 		// Now, vertical gravity and range
-		if (hasGravity(gravity, Gravity.TOP)) {
+		if (hasGravity(gravity, Gravity.FILL_VERTICAL)) {
+			// All the range
+			mEmiterYMin = location[1] - mParentLocation[1];
+			mEmiterYMax = location[1] + emiter.getHeight() - mParentLocation[1];
+		} else if (hasGravity(gravity, Gravity.TOP)) {
 			mEmiterYMin = location[1] - mParentLocation[1];
 			mEmiterYMax = mEmiterYMin;
 		}
